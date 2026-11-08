@@ -106,7 +106,7 @@ async function viewStatus(){
 function viewStaff(){app.innerHTML=`<div class="box wide"><h1>${t("staffHome")}</h1><p>${t("staffP")}</p></div>`}
 async function viewManager(){
  const owner=me.role=="owner";
- const {data,error}=await sb.from("profiles").select("*,staff_applications(position,nationality)").order("created_at",{ascending:false});
+ const {data,error}=await sb.from("profiles").select("*,staff_applications!profile_id(position,nationality)").order("created_at",{ascending:false});
  if(error)return app.innerHTML=`<div class="box"><p>${t("err")}${esc(error.message)}</p></div>`;
  const rows=data.filter(p=>p.id!=me.id).map(p=>{const a=[].concat(p.staff_applications||[])[0]||{};
   const acts=p.status=="pending"?`<button class="btn alt" data-a="active" data-id="${p.id}">${t("appr")}</button> <button class="btn bad" data-a="rejected" data-id="${p.id}">${t("rej")}</button>`:
