@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>New Space | Operations</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--ink:#14202b;--bg:#f6f8fa;--navy:#0b1b2b;--em:#0f6b4f;--gold:#d4a017;--card:#fff;--line:#d9e1e8;--mute:#5d6d7b;--bad:#b91c1c}
+@media(prefers-color-scheme:dark){:root{--ink:#e8eef3;--bg:#0a1410;--card:#12211a;--line:#25392f;--mute:#9db0a5}}
+*{box-sizing:border-box}body{margin:0;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:.8rem;padding:.7rem 1.2rem}header b{margin-inline-end:auto;border-bottom:2px solid var(--gold)}
+header a,.lk{color:#cfe;background:none;border:0;font:inherit;cursor:pointer;text-decoration:none}
+main{max-width:1080px;margin:0 auto;padding:1.2rem 1.1rem 4rem}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}.tabs button{background:none;border:1px solid var(--line);border-radius:8px;padding:.45rem 1rem;font:inherit;color:var(--ink);cursor:pointer}.tabs [aria-selected=true]{background:var(--em);color:#fff;border-color:var(--em)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.2rem;margin-bottom:1rem}h2{margin:.1rem 0 .8rem;font-size:1.2rem}
+.f{display:grid;gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.full{grid-column:1/-1}
+label{display:block;font-weight:500;margin-bottom:.15rem}input,select,textarea{width:100%;padding:.5rem .65rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.btn{background:var(--em);color:#fff;border:0;border-radius:8px;padding:.5rem 1.1rem;font:inherit;font-weight:700;cursor:pointer}.btn.alt{background:none;color:var(--ink);border:1px solid var(--line);font-weight:500;padding:.3rem .7rem}.btn.bad{background:none;color:var(--bad);border:1px solid var(--bad);padding:.3rem .7rem}.btn[disabled]{opacity:.5}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:.55rem;text-align:start;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mute);font-weight:500}
+.badge{padding:.1rem .6rem;border:1px solid currentColor;border-radius:99px;font-size:.82rem}.draft,.new{color:#b45309}.published,.contacted{color:#0f7a56}.cancelled,.closed{color:var(--mute)}
+.msg{margin:.7rem 0;padding:.5rem .7rem;border-radius:8px;background:rgba(212,160,23,.14);border:1px solid var(--gold)}.msg:empty{display:none}.note{color:var(--mute);font-size:.92rem}
+.pick{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:.4rem}.pick label{display:flex;gap:.6rem;align-items:center;font-weight:400;padding:.25rem .3rem;margin:0}.pick input{width:auto}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<header><b>New Space</b><a href="app.html" id="back"></a><button class="lk" id="lang"></button></header>
+<main><div class="tabs" id="tabs" role="tablist"></div><div class="msg" id="msg" role="status"></div><div id="v"></div></main>
+<script>
+const sb=supabase.createClient("https://ehhtcklnbwxjdlvjylqr.supabase.co","sb_publishable_5hnwRyn13Q-2BOrllpDv0w_oQbgIXxU");
+const T={ar:{back:"→ لوحة الإدارة",lang:"English",leads:"طلبات العمالة",cp:"العملاء والمشاريع",jobs:"المهام",err:"خطأ: ",
+date:"التاريخ",who:"الجهة",contact:"التواصل",svc:"الخدمة",msg:"التفاصيل",st:{new:"جديد",contacted:"تم التواصل",closed:"مغلق",draft:"مسودة",published:"منشور",cancelled:"ملغي"},noL:"لا توجد طلبات بعد.",
+addC:"إضافة عميل",cn:"اسم العميل",cc:"جهة الاتصال",add:"إضافة",addP:"إضافة مشروع",pn:"اسم المشروع",cl:"العميل",bud:"الميزانية (ريال)",clients:"العملاء",projects:"المشاريع",
+newJ:"مهمة جديدة",title:"عنوان المهمة",proj:"المشروع",loc:"الموقع",pos:"الوظيفة",req:"العدد المطلوب",wd:"تاريخ العمل",s:"البداية",e:"النهاية",brk:"استراحة (دقيقة)",ins:"تعليمات",
+staff:"اختيار الموظفين",search:"بحث بالاسم",all:"تحديد الكل",none:"إلغاء التحديد",sel:"المحدد",of:"من",save:"حفظ كمسودة",none2:"—",
+cols:{t:"المهمة",d:"الموعد",n:"الموظفون",s:"الحالة"},pub:"نشر",cancel:"إلغاء",saved:"حُفظت المهمة.",conf:"تعارض مع مهمة أخرى (لم يُسند):",ok:"أُسند",fewQ:"عدد الموظفين أقل من المطلوب. تنشر على أي حال؟",noS:"أسند موظفاً واحداً على الأقل قبل النشر.",noStaff:"لا يوجد موظفون مفعّلون بعد."},
+en:{back:"← Admin panel",lang:"العربية",leads:"Staff requests",cp:"Clients and projects",jobs:"Jobs",err:"Error: ",
+date:"Date",who:"Company",contact:"Contact",svc:"Service",msg:"Details",st:{new:"New",contacted:"Contacted",closed:"Closed",draft:"Draft",published:"Published",cancelled:"Cancelled"},noL:"No requests yet.",
+addC:"Add client",cn:"Client name",cc:"Contact",add:"Add",addP:"Add project",pn:"Project name",cl:"Client",bud:"Budget (QAR)",clients:"Clients",projects:"Projects",
+newJ:"New job",title:"Job title",proj:"Project",loc:"Location",pos:"Position",req:"Required count",wd:"Work date",s:"Start",e:"End",brk:"Break (min)",ins:"Instructions",
+staff:"Select staff",search:"Search by name",all:"Select all",none:"Deselect all",sel:"Selected",of:"of",save:"Save as draft",none2:"—",
+cols:{t:"Job",d:"Schedule",n:"Staff",s:"Status"},pub:"Publish",cancel:"Cancel",saved:"Job saved.",conf:"Conflicts with another job (not assigned):",ok:"Assigned",fewQ:"Fewer staff than required. Publish anyway?",noS:"Assign at least one employee before publishing.",noStaff:"No active staff yet."}};
+let L=localStorage.getItem("lang")||"ar",tab="leads",D={leads:[],clients:[],projects:[],staff:[],jobs:[]};
+const t=k=>T[L][k],$=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const say=m=>$("#msg").textContent=m||"",ob=(a,sel)=>a.map(x=>`<option value="${x.id}" ${x.id==sel?"selected":""}>${esc(x.name)}</option>`).join("");
+const badge=s=>`<span class="badge ${s}">${esc(t("st")[s]||s)}</span>`;
+async function guard(){const {data:{session}}=await sb.auth.getSession();if(!session)return location.replace("app.html");
+ const {data:p}=await sb.from("profiles").select("role,status").eq("id",session.user.id).single();
+ if(!p||!["active","approved"].includes(p.status)||!["admin","owner"].includes(p.role))return location.replace("app.html");}
+async function load(){
+ const r=await Promise.all([sb.from("leads").select("*").order("created_at",{ascending:false}),sb.from("clients").select("*").order("name"),sb.from("projects").select("*").order("name"),
+  sb.from("profiles").select("id,full_name,phone").eq("role","staff").in("status",["active","approved"]).order("full_name"),
+  sb.from("job_assignments").select("*,assignment_staff(staff_id)").order("work_date",{ascending:false})]);
+ const bad=r.find(x=>x.error);if(bad){say(t("err")+bad.error.message)}
+ [D.leads,D.clients,D.projects,D.staff,D.jobs]=r.map(x=>x.data||[]);}
+function draw(){
+ document.documentElement.lang=L;document.documentElement.dir=L=="ar"?"rtl":"ltr";$("#back").textContent=t("back");$("#lang").textContent=t("lang");
+ $("#tabs").innerHTML=["leads","cp","jobs"].map(k=>`<button role="tab" aria-selected="${tab==k}" data-t="${k}">${t(k)}</button>`).join("");
+ $("#v").innerHTML=tab=="leads"?vLeads():tab=="cp"?vCP():vJobs();if(tab=="jobs")count();}
+const vLeads=()=>`<div class="card wrap"><table><thead><tr><th>${t("date")}</th><th>${t("who")}</th><th>${t("contact")}</th><th>${t("svc")}</th><th>${t("msg")}</th><th></th></tr></thead><tbody>${D.leads.map(l=>`<tr><td>${new Date(l.created_at).toLocaleDateString(L=="ar"?"ar-QA":"en-GB")}</td><td>${esc(l.company)}<br><span class="note">${esc(l.contact_name)}</span></td><td>${esc(l.phone||"")}<br><span class="note">${esc(l.email||"")}</span></td><td>${esc(l.service||"")}</td><td>${esc(l.message||"")}</td><td><select data-l="${l.id}" aria-label="${t("st")[l.status]}">${["new","contacted","closed"].map(s=>`<option value="${s}" ${s==l.status?"selected":""}>${t("st")[s]}</option>`).join("")}</select></td></tr>`).join("")||`<tr><td colspan="6">${t("noL")}</td></tr>`}</tbody></table></div>`;
+const vCP=()=>`<div class="card"><h2>${t("addC")}</h2><form id="fc" class="f"><div><label for="c1">${t("cn")}</label><input id="c1" required></div><div><label for="c2">${t("cc")}</label><input id="c2"></div><div style="align-self:end"><button class="btn">${t("add")}</button></div></form></div>
+<div class="card"><h2>${t("addP")}</h2><form id="fp" class="f"><div><label for="p1">${t("cl")}</label><select id="p1" required>${ob(D.clients)}</select></div><div><label for="p2">${t("pn")}</label><input id="p2" required></div><div><label for="p3">${t("bud")}</label><input id="p3" type="number" min="0" step="0.01"></div><div style="align-self:end"><button class="btn">${t("add")}</button></div></form></div>
+<div class="card wrap"><h2>${t("projects")}</h2><table><tbody>${D.projects.map(p=>`<tr><td>${esc(p.name)}</td><td class="note">${esc(D.clients.find(c=>c.id==p.client_id)?.name||"")}</td><td>${p.budget!=null?esc(p.budget)+" QAR":""}</td></tr>`).join("")||`<tr><td>${t("none2")}</td></tr>`}</tbody></table></div>`;
+const vJobs=()=>`<div class="card"><h2>${t("newJ")}</h2><form id="fj"><div class="f">
+<div class="full"><label for="j1">${t("title")}</label><input id="j1" required></div>
+<div><label for="j2">${t("cl")}</label><select id="j2"><option value="">—</option>${ob(D.clients)}</select></div><div><label for="j3">${t("proj")}</label><select id="j3"><option value="">—</option>${ob(D.projects)}</select></div>
+<div><label for="j4">${t("loc")}</label><input id="j4"></div><div><label for="j5">${t("pos")}</label><input id="j5"></div><div><label for="j6">${t("req")}</label><input id="j6" type="number" min="1" value="1" required></div>
+<div><label for="j7">${t("wd")}</label><input id="j7" type="date" required></div><div><label for="j8">${t("s")}</label><input id="j8" type="time" required></div><div><label for="j9">${t("e")}</label><input id="j9" type="time" required></div>
+<div><label for="j10">${t("brk")}</label><input id="j10" type="number" min="0" value="0"></div><div><label for="j11">${t("bud")}</label><input id="j11" type="number" min="0" step="0.01"></div>
+<div class="full"><label for="j12">${t("ins")}</label><textarea id="j12" rows="2"></textarea></div></div>
+<h2 style="margin-top:1rem">${t("staff")} · <span id="cnt"></span></h2><div class="row" style="margin-bottom:.5rem"><input id="q" placeholder="${t("search")}" style="max-width:260px" aria-label="${t("search")}"><button type="button" class="btn alt" id="all">${t("all")}</button><button type="button" class="btn alt" id="no">${t("none")}</button></div>
+<div class="pick" id="pk">${D.staff.map(s=>`<label data-n="${esc(s.full_name.toLowerCase())}"><input type="checkbox" value="${s.id}"> ${esc(s.full_name)} <span class="note">${esc(s.phone||"")}</span></label>`).join("")||`<span class="note">${t("noStaff")}</span>`}</div>
+<p><button class="btn" id="sj">${t("save")}</button></p></form></div>
+<div class="card wrap"><table><thead><tr><th>${t("cols").t}</th><th>${t("cols").d}</th><th>${t("cols").n}</th><th>${t("cols").s}</th><th></th></tr></thead><tbody>${D.jobs.map(j=>`<tr><td>${esc(j.title)}<br><span class="note">${esc(j.location_name||"")}</span></td><td>${esc(j.work_date)}<br><span class="note">${esc(j.start_time.slice(0,5))}–${esc(j.end_time.slice(0,5))}</span></td><td>${j.assignment_staff.length} ${t("of")} ${j.required_count}</td><td>${badge(j.status)}</td><td><div class="row">${j.status=="draft"?`<button class="btn alt" data-pub="${j.id}">${t("pub")}</button>`:""}${j.status!="cancelled"?`<button class="btn bad" data-can="${j.id}">${t("cancel")}</button>`:""}</div></td></tr>`).join("")||`<tr><td>${t("none2")}</td></tr>`}</tbody></table></div>`;
+const count=()=>{const n=document.querySelectorAll("#pk input:checked").length;$("#cnt").textContent=`${t("sel")}: ${n} ${t("of")} ${$("#j6")?.value||1}`};
+document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.t){tab=b.dataset.t;say();return draw()}
+ if(b.id=="all"||b.id=="no"){document.querySelectorAll("#pk label:not([hidden]) input").forEach(i=>i.checked=b.id=="all");return count()}
+ if(b.dataset.pub){const j=D.jobs.find(x=>x.id==b.dataset.pub);if(!j.assignment_staff.length)return say(t("noS"));
+  if(j.assignment_staff.length<j.required_count&&!confirm(t("fewQ")))return;
+  const {error}=await sb.from("job_assignments").update({status:"published"}).eq("id",j.id);error?say(t("err")+error.message):(await load(),draw())}
+ if(b.dataset.can){const {error}=await sb.from("job_assignments").update({status:"cancelled"}).eq("id",b.dataset.can);error?say(t("err")+error.message):(await load(),draw())}});
+document.addEventListener("input",e=>{if(e.target.id=="q"){const q=e.target.value.toLowerCase();document.querySelectorAll("#pk label").forEach(l=>l.hidden=!l.dataset.n.includes(q))}if(e.target.id=="j6"||e.target.closest("#pk"))count()});
+document.addEventListener("change",async e=>{if(e.target.dataset.l){const {error}=await sb.from("leads").update({status:e.target.value}).eq("id",e.target.dataset.l);error?say(t("err")+error.message):say()}if(e.target.closest("#pk"))count()});
+document.addEventListener("submit",async e=>{e.preventDefault();const id=e.target.id;say();
+ if(id=="fc"){const {error}=await sb.from("clients").insert({name:$("#c1").value.trim(),contact:$("#c2").value.trim()||null});if(error)return say(t("err")+error.message)}
+ if(id=="fp"){const {error}=await sb.from("projects").insert({client_id:$("#p1").value,name:$("#p2").value.trim(),budget:$("#p3").value||null});if(error)return say(t("err")+error.message)}
+ if(id=="fj"){const btn=$("#sj");btn.disabled=true;
+  const {data:j,error}=await sb.from("job_assignments").insert({title:$("#j1").value.trim(),client_id:$("#j2").value||null,project_id:$("#j3").value||null,location_name:$("#j4").value.trim()||null,position:$("#j5").value.trim()||null,required_count:+$("#j6").value,work_date:$("#j7").value,start_time:$("#j8").value,end_time:$("#j9").value,break_minutes:+$("#j10").value||0,budget:$("#j11").value||null,instructions:$("#j12").value.trim()||null,created_by:(await sb.auth.getUser()).data.user.id}).select().single();
+  if(error){btn.disabled=false;return say(t("err")+error.message)}
+  let ok=0;const bad=[];for(const i of document.querySelectorAll("#pk input:checked")){const r=await sb.from("assignment_staff").insert({assignment_id:j.id,staff_id:i.value});
+   if(r.error)bad.push(D.staff.find(s=>s.id==i.value)?.full_name);else ok++}
+  await load();draw();return say(`${t("saved")} ${t("ok")}: ${ok}.${bad.length?` ${t("conf")} ${bad.join("، ")}`:""}`)}
+ await load();draw()});
+$("#lang").onclick=()=>{L=L=="ar"?"en":"ar";localStorage.setItem("lang",L);draw()};
+(async()=>{await guard();await load();draw()})();
+</script>
+</body>
+</html>

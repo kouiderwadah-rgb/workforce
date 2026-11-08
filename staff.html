@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>New Space | Staff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/base.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="site-head" id="head"></header>
+<main class="wrap">
+  <div id="view"><div class="card"><span class="spinner"></span> <span id="loadingText"></span></div></div>
+</main>
+<script src="assets/core.js"></script>
+<script>
+(function () {
+  "use strict";
+  var NS = window.NS;
+  var t = NS.t;
+  var me = null;
+  var docs = [];
+  var avatarUrl = null;
+  var saving = false;
+
+  NS.extendDict({
+    ar: {
+      staffTitle: "بوابة الموظف",
+      profile: "الملف الشخصي",
+      profileHint: "حدّث بياناتك الأساسية. لا يمكنك تغيير الدور أو الحالة.",
+      fullName: "الاسم الكامل",
+      phone: "رقم الجوال",
+      position: "الوظيفة",
+      nationality: "الجنسية",
+      saveProfile: "حفظ الملف",
+      avatar: "الصورة الشخصية",
+      changeAvatar: "تغيير الصورة",
+      avatarHint: "JPG أو PNG أو WebP، حتى 5 ميغابايت.",
+      documents: "المستندات",
+      documentsHint: "ارفع جواز السفر والإقامة وصورتك الشخصية. الحد الأقصى 5 ميغابايت لكل ملف.",
+      uploadDoc: "رفع مستند",
+      docType: "نوع المستند",
+      side: "الجهة",
+      noSide: "غير محدد",
+      front: "أمامي",
+      back: "خلفي",
+      expiry: "تاريخ الانتهاء (اختياري)",
+      chooseFile: "اختر ملفاً",
+      upload: "رفع",
+      uploading: "جارٍ الرفع…",
+      reupload: "إعادة الرفع",
+      view: "عرض",
+      remove: "حذف",
+      removeConfirm: "حذف هذا المستند؟",
+      noDocs: "لم ترفع أي مستند بعد.",
+      noDocsHint: "ابدأ برفع جواز السفر والإقامة.",
+      savedProfile: "تم حفظ الملف.",
+      savedDoc: "تم رفع المستند. سيُراجع قريباً.",
+      deletedDoc: "تم حذف المستند.",
+      needFile: "اختر ملفاً أولاً.",
+      tooLarge: "الملف أكبر من 5 ميغابايت.",
+      badType: "النوع غير مدعوم. المسموح: JPG, PNG, WebP, PDF.",
+      reviewNote: "ملاحظة المراجعة",
+      uploaded: "تاريخ الرفع",
+      expires: "ينتهي في",
+      expiresSoon: "قريب الانتهاء",
+      expired: "منتهي",
+      file: "الملف",
+      close: "إغلاق",
+      previewUnavailable: "لا يمكن معاينة هذا الملف.",
+      dt: {
+        passport: "جواز السفر",
+        residence: "الإقامة (QID)",
+        photo: "صورة شخصية",
+        contract: "عقد العمل",
+        other: "أخرى",
+      },
+      stDoc: {
+        pending: "بانتظار المراجعة",
+        approved: "معتمد",
+        rejected: "مرفوض",
+      },
+    },
+    en: {
+      staffTitle: "Staff portal",
+      profile: "Profile",
+      profileHint: "Update your basic details. You cannot change your role or status.",
+      fullName: "Full name",
+      phone: "Mobile number",
+      position: "Position",
+      nationality: "Nationality",
+      saveProfile: "Save profile",
+      avatar: "Profile photo",
+      changeAvatar: "Change photo",
+      avatarHint: "JPG, PNG or WebP, up to 5 MB.",
+      documents: "Documents",
+      documentsHint: "Upload your passport, residence permit and personal photo. Maximum 5 MB per file.",
+      uploadDoc: "Upload document",
+      docType: "Document type",
+      side: "Side",
+      noSide: "Not specified",
+      front: "Front",
+      back: "Back",
+      expiry: "Expiry date (optional)",
+      chooseFile: "Choose a file",
+      upload: "Upload",
+      uploading: "Uploading…",
+      reupload: "Re-upload",
+      view: "View",
+      remove: "Delete",
+      removeConfirm: "Delete this document?",
+      noDocs: "No documents uploaded yet.",
+      noDocsHint: "Start with your passport and residence permit.",
+      savedProfile: "Profile saved.",
+      savedDoc: "Document uploaded. It will be reviewed shortly.",
+      deletedDoc: "Document deleted.",
+      needFile: "Choose a file first.",
+      tooLarge: "File is larger than 5 MB.",
+      badType: "Unsupported type. Allowed: JPG, PNG, WebP, PDF.",
+      reviewNote: "Review note",
+      uploaded: "Uploaded",
+      expires: "Expires",
+      expiresSoon: "Expiring soon",
+      expired: "Expired",
+      file: "File",
+      close: "Close",
+      previewUnavailable: "This file cannot be previewed.",
+      dt: {
+        passport: "Passport",
+        residence: "Residence permit (QID)",
+        photo: "Personal photo",
+        contract: "Employment contract",
+        other: "Other",
+      },
+      stDoc: {
+        pending: "Pending review",
+        approved: "Approved",
+        rejected: "Rejected",
+      },
+    },
+  });
+
+  NS.onLang(function () {
+    if (me) {
+      NS.mountHeader(me);
+      renderAll();
+    }
+  });
+
+  function statusPill(status) {
+    var label = (NS.t("stDoc") || {})[status] || NS.statusLabel(status);
+    return '<span class="badge ' + NS.esc(status) + '">' + NS.esc(label) + "</span>";
+  }
+
+  function expiryBadge(expires) {
+    if (!expires) return "";
+    var end = new Date(expires + "T23:59:59");
+    if (Number.isNaN(end.getTime())) return "";
+    var diff = end.getTime() - Date.now();
+    if (diff < 0) {
+      return ' <span class="badge rejected">' + NS.esc(t("expired")) + "</span>";
+    }
+    if (diff < 30 * 86400000) {
+      return ' <span class="badge pending">' + NS.esc(t("expiresSoon")) + "</span>";
+    }
+    return "";
+  }
+
+  function renderAll() {
+    var view = NS.$("#view");
+    if (!view) return;
+
+    var docOptions = ["passport", "residence", "photo", "contract", "other"]
+      .map(function (k) {
+        return '<option value="' + k + '">' + NS.esc((NS.t("dt") || {})[k] || k) + "</option>";
+      })
+      .join("");
+
+    view.innerHTML =
+      '<div class="between"><h1>' + NS.esc(t("staffTitle")) + "</h1>" +
+      '<span class="badge ' + NS.esc(me.status) + '">' + NS.esc(NS.statusLabel(me.status)) + "</span></div>" +
+      '<div class="grid" style="grid-template-columns:minmax(260px,1fr) minmax(300px,1.4fr)">' +
+      // Profile card
+      '<section class="card">' +
+      "<h2>" + NS.esc(t("profile")) + "</h2>" +
+      '<div class="row" style="margin-bottom:.8rem">' +
+      NS.avatarHtml(me.full_name, avatarUrl, "lg") +
+      "<div><b>" + NS.esc(me.full_name || "") + "</b><br>" +
+      '<span class="note">' + NS.esc(me.email || ("")) + "</span></div></div>" +
+      '<form id="profileForm" novalidate>' +
+      '<div class="field"><label for="fullName">' + NS.esc(t("fullName")) + '</label><input id="fullName" maxlength="120" value="' + NS.esc(me.full_name || "") + '" required></div>' +
+      '<div class="field"><label for="phone">' + NS.esc(t("phone")) + '</label><input id="phone" type="tel" maxlength="30" value="' + NS.esc(me.phone || "") + '"></div>' +
+      '<div class="field"><label for="position">' + NS.esc(t("position")) + '</label><input id="position" maxlength="80" value="' + NS.esc(me.position || "") + '"></div>' +
+      '<div class="field"><label for="nationality">' + NS.esc(t("nationality")) + '</label><input id="nationality" maxlength="60" value="' + NS.esc(me.nationality || "") + '"></div>' +
+      '<button class="btn" id="saveProfile" type="submit">' + NS.esc(t("saveProfile")) + "</button>" +
+      '<p class="note" style="margin-top:.6rem">' + NS.esc(t("profileHint")) + "</p>" +
+      "</form>" +
+      '<hr class="divider">' +
+      "<h3>" + NS.esc(t("avatar")) + "</h3>" +
+      '<label class="btn ghost sm" for="avatarFile" style="cursor:pointer">' + NS.esc(t("changeAvatar")) + "</label>" +
+      '<input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>' +
+      '<p class="note">' + NS.esc(t("avatarHint")) + "</p>" +
+      "</section>" +
+      // Upload card
+      '<section class="card">' +
+      "<h2>" + NS.esc(t("uploadDoc")) + "</h2>" +
+      '<p class="note">' + NS.esc(t("documentsHint")) + "</p>" +
+      '<form id="uploadForm" novalidate class="form-grid">' +
+      '<div class="field"><label for="docType">' + NS.esc(t("docType")) + "</label>" +
+      '<select id="docType" required>' + docOptions + "</select></div>" +
+      '<div class="field"><label for="side">' + NS.esc(t("side")) + "</label>" +
+      '<select id="side"><option value="">' + NS.esc(t("noSide")) + "</option>" +
+      '<option value="front">' + NS.esc(t("front")) + "</option>" +
+      '<option value="back">' + NS.esc(t("back")) + "</option></select></div>" +
+      '<div class="field"><label for="expiry">' + NS.esc(t("expiry")) + '</label><input id="expiry" type="date"></div>' +
+      '<div class="field full"><label for="docFile">' + NS.esc(t("chooseFile")) + '</label><input id="docFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>' +
+      '<div class="full"><button class="btn" id="uploadBtn" type="submit">' + NS.esc(t("upload")) + "</button>" +
+      '<span class="note" id="fileName" style="margin-inline-start:.6rem"></span></div>' +
+      "</form>" +
+      "</section>" +
+      "</div>" +
+      // Documents
+      '<section class="card" style="margin-top:1rem">' +
+      '<div class="between"><h2>' + NS.esc(t("documents")) + "</h2>" +
+      '<span class="note" id="docCount"></span></div>' +
+      '<div id="docList"></div>' +
+      "</section>";
+
+    bindProfile();
+    bindAvatar();
+    bindUpload();
+    renderDocs();
+  }
+
+  function bindProfile() {
+    NS.$("#profileForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (saving) return;
+      var name = NS.safeText(NS.$("#fullName").value, 120);
+      if (!name) {
+        NS.toast(t("fillAll"), "error");
+        return;
+      }
+      saving = true;
+      var btn = NS.$("#saveProfile");
+      btn.disabled = true;
+      var patch = {
+        full_name: name,
+        phone: NS.safeText(NS.$("#phone").value, 30) || null,
+        position: NS.safeText(NS.$("#position").value, 80) || null,
+        nationality: NS.safeText(NS.$("#nationality").value, 60) || null,
+      };
+      var res = await NS.sb.from("profiles").update(patch).eq("id", me.id);
+      saving = false;
+      btn.disabled = false;
+      if (res.error) return NS.toast(res.error.message, "error");
+      me = Object.assign({}, me, patch);
+      NS.toast(t("savedProfile"));
+      renderAll();
+    });
+  }
+
+  function bindAvatar() {
+    var input = NS.$("#avatarFile");
+    if (!input) return;
+    input.addEventListener("change", async function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var err = NS.checkFile(file);
+      if (err === "too_large") return NS.toast(t("tooLarge"), "error");
+      if (err === "bad_type") return NS.toast(t("badType"), "error");
+      if (!file.type.startsWith("image/")) return NS.toast(t("badType"), "error");
+
+      var compressed = await NS.compressImage(file, 640, 0.85);
+      if (compressed.size > NS.MAX_BYTES) return NS.toast(t("tooLarge"), "error");
+
+      var path = me.id + "/avatar-" + Date.now() + "." + NS.extOf(compressed.name);
+      var up = await NS.upload("documents", path, compressed);
+      if (up.error) return NS.toast(up.error.message, "error");
+
+      var res = await NS.sb.from("profiles").update({ avatar_path: path }).eq("id", me.id);
+      if (res.error) return NS.toast(res.error.message, "error");
+      me.avatar_path = path;
+      NS.forgetAvatar(me.id);
+      avatarUrl = await NS.signedUrl("documents", path, 3600);
+      NS.toast(t("savedProfile"));
+      renderAll();
+    });
+  }
+
+  function bindUpload() {
+    var form = NS.$("#uploadForm");
+    var fileInput = NS.$("#docFile");
+    var nameEl = NS.$("#fileName");
+
+    fileInput.addEventListener("change", function () {
+      var f = fileInput.files && fileInput.files[0];
+      nameEl.textContent = f ? f.name + " (" + Math.round(f.size / 1024) + " KB)" : "";
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (saving) return;
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) return NS.toast(t("needFile"), "error");
+      var err = NS.checkFile(file);
+      if (err === "too_large") return NS.toast(t("tooLarge"), "error");
+      if (err === "bad_type") return NS.toast(t("badType"), "error");
+
+      saving = true;
+      var btn = NS.$("#uploadBtn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> ' + NS.esc(t("uploading"));
+
+      var prepared = file;
+      if (file.type.indexOf("image/") === 0) {
+        prepared = await NS.compressImage(file, 1600, 0.82);
+      }
+      if (prepared.size > NS.MAX_BYTES) {
+        saving = false;
+        btn.disabled = false;
+        btn.textContent = t("upload");
+        return NS.toast(t("tooLarge"), "error");
+      }
+
+      var type = NS.$("#docType").value;
+      var side = NS.$("#side").value || null;
+      var expiry = NS.$("#expiry").value || null;
+      var path = me.id + "/" + type + "-" + (side || "na") + "-" + Date.now() + "." + NS.extOf(prepared.name);
+
+      var up = await NS.upload("documents", path, prepared);
+      if (up.error) {
+        saving = false;
+        btn.disabled = false;
+        btn.textContent = t("upload");
+        return NS.toast(up.error.message, "error");
+      }
+
+      var ins = await NS.sb.from("staff_documents").insert({
+        profile_id: me.id,
+        doc_type: type,
+        side: side,
+        file_path: path,
+        file_name: prepared.name,
+        mime_type: prepared.type,
+        size_bytes: prepared.size,
+        expires_on: expiry,
+        status: "pending",
+      });
+
+      saving = false;
+      btn.disabled = false;
+      btn.textContent = t("upload");
+      if (ins.error) return NS.toast(ins.error.message, "error");
+
+      form.reset();
+      nameEl.textContent = "";
+      NS.toast(t("savedDoc"));
+      await loadDocs();
+    });
+  }
+
+  function renderDocs() {
+    var list = NS.$("#docList");
+    var count = NS.$("#docCount");
+    if (!list) return;
+    if (count) count.textContent = NS.fmtNum(docs.length);
+
+    if (!docs.length) {
+      list.innerHTML =
+        '<div class="empty"><b>' + NS.esc(t("noDocs")) + "</b><br>" +
+        '<span class="note">' + NS.esc(t("noDocsHint")) + "</span></div>";
+      return;
+    }
+
+    list.innerHTML =
+      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))">' +
+      docs
+        .map(function (d) {
+          var label = (NS.t("dt") || {})[d.doc_type] || d.doc_type;
+          var thumb = "";
+          if (d.mime_type && d.mime_type.indexOf("image/") === 0 && d.previewUrl) {
+            thumb = '<img class="thumb" src="' + NS.esc(d.previewUrl) + '" alt="' + NS.esc(label) + '" loading="lazy">';
+          } else {
+            thumb =
+              '<div class="thumb" style="display:grid;place-items:center;color:var(--mute);font-weight:600">' +
+              NS.esc((d.mime_type || "").indexOf("pdf") !== -1 ? "PDF" : label) + "</div>";
+          }
+          var sideLabel = d.side ? " · " + NS.esc(({ front: t("front"), back: t("back") })[d.side] || d.side) : "";
+          return '<article class="doc-card">' + thumb +
+            '<div class="between"><b>' + NS.esc(label) + "</b>" + statusPill(d.status) + "</div>" +
+            '<div class="note">' + sideLabel + "</div>" +
+            '<div class="note">' + NS.esc(t("uploaded")) + ": " + NS.esc(NS.fmtDate(d.created_at)) + "</div>" +
+            (d.expires_on
+              ? '<div class="note">' + NS.esc(t("expires")) + ": " + NS.esc(NS.fmtDate(d.expires_on)) + expiryBadge(d.expires_on) + "</div>"
+              : "") +
+            (d.review_note
+              ? '<div class="alert error"><b>' + NS.esc(t("reviewNote")) + ":</b> " + NS.esc(d.review_note) + "</div>"
+              : "") +
+            '<div class="row">' +
+            '<button class="btn ghost sm" data-view="' + NS.esc(d.id) + '" type="button">' + NS.esc(t("view")) + "</button>" +
+            '<button class="btn ghost sm" data-re="' + NS.esc(d.id) + '" type="button">' + NS.esc(t("reupload")) + "</button>" +
+            '<button class="btn danger sm" data-del="' + NS.esc(d.id) + '" type="button">' + NS.esc(t("remove")) + "</button>" +
+            "</div></article>";
+        })
+        .join("") +
+      "</div>";
+
+    list.onclick = onDocClick;
+  }
+
+  async function onDocClick(e) {
+    var view = e.target.closest("[data-view]");
+    var re = e.target.closest("[data-re]");
+    var del = e.target.closest("[data-del]");
+    if (view) return openDoc(view.dataset.view);
+    if (re) return prepareReupload(re.dataset.re);
+    if (del) return removeDoc(del.dataset.del);
+  }
+
+  async function openDoc(id) {
+    var d = docs.find(function (x) { return x.id === id; });
+    if (!d) return;
+    var url = await NS.signedUrl("documents", d.file_path, 60);
+    if (!url) return NS.toast(t("previewUnavailable"), "error");
+    var inner =
+      '<div class="modal-head"><h2>' + NS.esc((NS.t("dt") || {})[d.doc_type] || d.doc_type) + "</h2>" +
+      '<button class="btn ghost sm" data-close type="button">' + NS.esc(t("close")) + "</button></div>";
+    if (d.mime_type && d.mime_type.indexOf("image/") === 0) {
+      inner += '<img class="doc-frame" src="' + NS.esc(url) + '" alt="">';
+    } else if (d.mime_type === "application/pdf") {
+      inner += '<object class="doc-frame" data="' + NS.esc(url) + '" type="application/pdf"></object>';
+    } else {
+      inner += '<p class="note">' + NS.esc(t("previewUnavailable")) + "</p>";
+    }
+    inner += '<p style="margin-top:.6rem"><a class="btn ghost sm" href="' + NS.esc(url) +
+      '" target="_blank" rel="noopener">' + NS.esc(t("view")) + "</a></p>";
+    var overlay = NS.openModal(inner);
+    overlay.addEventListener("click", function (ev) {
+      if (ev.target.closest("[data-close]")) NS.closeModal();
+    });
+  }
+
+  function prepareReupload(id) {
+    var d = docs.find(function (x) { return x.id === id; });
+    if (!d) return;
+    NS.$("#docType").value = d.doc_type;
+    NS.$("#side").value = d.side || "";
+    NS.$("#expiry").value = d.expires_on || "";
+    NS.$("#docFile").focus();
+    NS.$("#uploadForm").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  async function removeDoc(id) {
+    var d = docs.find(function (x) { return x.id === id; });
+    if (!d) return;
+    if (!window.confirm(t("removeConfirm"))) return;
+    var res = await NS.sb.from("staff_documents").delete().eq("id", id);
+    if (res.error) return NS.toast(res.error.message, "error");
+    await NS.sb.storage.from("documents").remove([d.file_path]);
+    NS.toast(t("deletedDoc"));
+    await loadDocs();
+  }
+
+  async function loadDocs() {
+    var res = await NS.sb
+      .from("staff_documents")
+      .select("*")
+      .eq("profile_id", me.id)
+      .order("created_at", { ascending: false });
+    if (res.error) {
+      NS.$("#docList").innerHTML = '<div class="alert error">' + NS.esc(res.error.message) + "</div>";
+      return;
+    }
+    docs = res.data || [];
+    await Promise.all(
+      docs.map(async function (d) {
+        if (d.mime_type && d.mime_type.indexOf("image/") === 0) {
+          d.previewUrl = await NS.signedUrl("documents", d.file_path, 3600);
+        }
+      })
+    );
+    renderDocs();
+  }
+
+  async function boot() {
+    var ctx = await NS.guard(["staff", "admin", "owner"]);
+    if (!ctx) return;
+    me = ctx.profile;
+    if (!me.email && ctx.session && ctx.session.user) me.email = ctx.session.user.email;
+    NS.mountHeader(me);
+    var urls = await NS.avatarUrls([me]);
+    avatarUrl = urls[me.id] || null;
+    renderAll();
+    await loadDocs();
+  }
+
+  NS.$("#loadingText").textContent = t("loading");
+  NS.onLang(function () {
+    if (!me && NS.$("#loadingText")) NS.$("#loadingText").textContent = t("loading");
+  });
+  boot();
+})();
+</script>
+</body>
+</html>
