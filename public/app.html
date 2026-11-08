@@ -42,7 +42,7 @@ appForm:"أكمل طلب التوظيف",position:"الوظيفة المطلوب
 staffHome:"لوحة الموظف",staffP:"حسابك مفعّل. سيظهر هنا جدول عملك والتسجيل بالحضور في المرحلة التالية.",
 mgr:"إدارة الموظفين",owner:"لوحة المالك",colName:"الاسم",colPos:"الوظيفة",colSt:"الحالة",colRole:"الدور",appr:"موافقة",rej:"رفض",susp:"إيقاف",act:"تفعيل",rejWhy:"سبب الرفض؟",
 st:{pending:"بانتظار الموافقة",active:"نشط",suspended:"موقوف",rejected:"مرفوض"},rl:{staff:"موظف",admin:"مدير",owner:"مالك"},
-docs:"المستندات والفواتير (تجريبي)",docPass:"صورة جواز السفر",docRes:"الإقامة (QID)",docPhoto:"صورة شخصية",big:"الملف أكبر من 5 ميغابايت.",docsSent:"المستندات المرفوعة",colDocs:"المستندات",view:"عرض",dt:{passport:"جواز السفر",residence:"الإقامة",photo:"صورة شخصية"},err:"حدث خطأ: ",empty:"لا يوجد موظفون بعد.",roleNote:"تغيير الأدوار للمالك فقط."},
+docs:"المستندات والفواتير (تجريبي)",ops:"العمليات: الطلبات والمشاريع والمهام",docPass:"صورة جواز السفر",docRes:"الإقامة (QID)",docPhoto:"صورة شخصية",big:"الملف أكبر من 5 ميغابايت.",docsSent:"المستندات المرفوعة",colDocs:"المستندات",view:"عرض",dt:{passport:"جواز السفر",residence:"الإقامة",photo:"صورة شخصية"},err:"حدث خطأ: ",empty:"لا يوجد موظفون بعد.",roleNote:"تغيير الأدوار للمالك فقط."},
 en:{login:"Sign in",reg:"New account",email:"Email",pass:"Password",name:"Full name",phone:"Mobile number",forgot:"Forgot password?",go:"Sign in",create:"Create account",out:"Sign out",lang:"العربية",
 checkMail:"Account created. If email confirmation is required, open the message, then sign in.",resetSent:"A password reset link was sent to your email.",needEmail:"Enter your email first.",newPass:"New password",save:"Save",passShort:"Password must be at least 8 characters.",
 pending:"Your application is under review",pendingP:"An administrator will review it. Your dashboard appears once approved.",rejected:"Application rejected",suspended:"Account suspended",reason:"Reason",
@@ -50,7 +50,7 @@ appForm:"Complete your application",position:"Position applied for",nat:"Nationa
 staffHome:"Staff dashboard",staffP:"Your account is active. Your schedule and attendance check-in arrive in the next phase.",
 mgr:"Staff management",owner:"Owner dashboard",colName:"Name",colPos:"Position",colSt:"Status",colRole:"Role",appr:"Approve",rej:"Reject",susp:"Suspend",act:"Activate",rejWhy:"Reason for rejection?",
 st:{pending:"Pending",active:"Active",suspended:"Suspended",rejected:"Rejected"},rl:{staff:"Staff",admin:"Admin",owner:"Owner"},
-docs:"Documents and invoices (demo)",docPass:"Passport copy",docRes:"Residence permit (QID)",docPhoto:"Personal photo",big:"File is larger than 5 MB.",docsSent:"Uploaded documents",colDocs:"Documents",view:"View",dt:{passport:"Passport",residence:"Residence permit",photo:"Personal photo"},err:"Error: ",empty:"No staff yet.",roleNote:"Only the owner can change roles."}};
+docs:"Documents and invoices (demo)",ops:"Operations: requests, projects, jobs",docPass:"Passport copy",docRes:"Residence permit (QID)",docPhoto:"Personal photo",big:"File is larger than 5 MB.",docsSent:"Uploaded documents",colDocs:"Documents",view:"View",dt:{passport:"Passport",residence:"Residence permit",photo:"Personal photo"},err:"Error: ",empty:"No staff yet.",roleNote:"Only the owner can change roles."}};
 let L=localStorage.getItem("lang")||"ar",me=null,mode="login",recovery=false;
 const t=k=>T[L][k],$=s=>document.querySelector(s),app=$("#app");
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -123,7 +123,7 @@ async function viewManager(){
  const c=s=>data.filter(p=>p.status==s&&p.id!=me.id).length;
  app.innerHTML=`<h1>${owner?t("owner"):t("mgr")}</h1><div class="grid"><div class="card"><b>${c("pending")}</b><br>${t("st").pending}</div><div class="card"><b>${c("active")}</b><br>${t("st").active}</div><div class="card"><b>${c("suspended")+c("rejected")}</b><br>${t("st").suspended} / ${t("st").rejected}</div></div>
  <div class="card wrap"><table><thead><tr><th>${t("colName")}</th><th>${t("colPos")}</th><th>${t("colDocs")}</th><th>${t("colSt")}</th><th>${t("colRole")}</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="6">${t("empty")}</td></tr>`}</tbody></table></div>
- ${owner?"":`<p class="note">${t("roleNote")}</p>`}<p><a href="documents.html" style="color:var(--em)">${t("docs")}</a></p><div class="msg" id="msg"></div>`;
+ ${owner?"":`<p class="note">${t("roleNote")}</p>`}<p><a href="ops.html" style="color:var(--em)">${t("ops")}</a> · <a href="documents.html" style="color:var(--em)">${t("docs")}</a></p><div class="msg" id="msg"></div>`;
  const showDocs=async id=>{const p=data.find(x=>x.id==id),a=[].concat(p.staff_applications||[])[0]||{},out=[];
   for(const d of a.documents||[]){const {data:u}=await sb.storage.from("documents").createSignedUrl(d.path,300);
    if(u?.signedUrl)out.push(`<li><a href="${u.signedUrl}" target="_blank" rel="noopener">${esc(t("dt")[d.type]||d.type)}</a></li>`)}
