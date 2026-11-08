@@ -3,130 +3,104 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>New Space</title>
+<title>New Space | Workforce Solutions Qatar</title>
+<meta name="description" content="New Space — manpower supply and event staffing in Qatar / نيو سبيس لتوريد العمالة والكوادر في قطر">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--ink:#14202b;--bg:#f6f8fa;--navy:#0b1b2b;--em:#0f6b4f;--acc:#10b981;--gold:#d4a017;--card:#fff;--line:#d9e1e8;--mute:#5d6d7b;--bad:#b91c1c}
+:root{--ink:#14202b;--bg:#f6f8fa;--navy:#0b1b2b;--em:#0f6b4f;--acc:#10b981;--gold:#d4a017;--card:#fff;--line:#d9e1e8;--mute:#5d6d7b}
 @media(prefers-color-scheme:dark){:root{--ink:#e8eef3;--bg:#0a1410;--card:#12211a;--line:#25392f;--mute:#9db0a5}}
-*{box-sizing:border-box}body{margin:0;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
-header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:.8rem;padding:.7rem 1.2rem}
-header b{margin-inline-end:auto;font-size:1.1rem;border-bottom:2px solid var(--gold)}header span{color:#9cb;font-size:.9rem}
-.lk{background:none;border:0;color:#cfe;font:inherit;cursor:pointer;padding:.3rem .6rem}
-main{max-width:1000px;margin:0 auto;padding:1.5rem 1.1rem 4rem}
-.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.4rem;max-width:440px;margin:2rem auto}
-.wide{max-width:none;margin:1rem 0}
-h1,h2{margin:.2rem 0 .8rem}label{display:block;margin:.6rem 0 .2rem;font-weight:500}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+a{color:inherit}.w{max-width:1080px;margin:0 auto;padding:0 1.2rem}
+header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff}
+header .w{display:flex;align-items:center;gap:1rem;height:62px}
+.logo{font-weight:700;font-size:1.2rem;text-decoration:none;border-bottom:2px solid var(--gold);margin-inline-end:auto}
+nav{display:flex;gap:1.1rem}nav a{text-decoration:none;color:#cfe;font-size:.95rem}nav a:hover{color:#fff}
+@media(max-width:820px){nav{display:none}}
+.lk{background:none;border:0;color:#cfe;font:inherit;cursor:pointer}
+.btn{display:inline-block;background:var(--acc);color:#04130d;border:0;border-radius:8px;padding:.6rem 1.3rem;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
+.btn.o{background:none;color:#fff;border:1px solid rgba(255,255,255,.4)}.btn.dk{background:var(--em);color:#fff}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.hero{background:linear-gradient(135deg,var(--navy),#0d3b2e);color:#fff;padding:4.5rem 0 4rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);line-height:1.25;margin:0 0 1rem;max-width:18ch}.hero p{color:#bcd;max-width:56ch;font-size:1.1rem;margin:0 0 1.6rem}
+.hero .row{display:flex;gap:.8rem;flex-wrap:wrap}.tag{color:var(--gold);font-weight:500;margin-bottom:.6rem}
+section{padding:3.5rem 0}h2{font-size:1.7rem;margin:0 0 .4rem}.sub{color:var(--mute);margin:0 0 1.8rem;max-width:60ch}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.3rem}.card h3{margin:.2rem 0 .4rem;font-size:1.1rem}.card p{margin:0;color:var(--mute)}
+.ic{width:38px;height:38px;border-radius:9px;background:rgba(16,185,129,.14);color:var(--em);display:grid;place-items:center;font-weight:700}
+.alt{background:var(--card);border-block:1px solid var(--line)}
+.step b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#1a1200;margin-bottom:.5rem}
+.cta{background:var(--navy);color:#fff;border-radius:14px;padding:2rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}.cta p{color:#bcd;margin:.2rem 0 0}
+form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.4rem;display:grid;gap:.7rem;grid-template-columns:1fr 1fr}
+@media(max-width:640px){form{grid-template-columns:1fr}}.full{grid-column:1/-1}
+label{display:block;font-weight:500;margin-bottom:.2rem}
 input,select,textarea{width:100%;padding:.55rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
-.btn{background:var(--em);color:#fff;border:0;border-radius:8px;padding:.55rem 1.1rem;font:inherit;font-weight:700;cursor:pointer;margin-top:.9rem}
-.btn.alt{background:none;color:var(--ink);border:1px solid var(--line);font-weight:500;margin:0;padding:.3rem .7rem}.btn.bad{background:none;color:var(--bad);border:1px solid var(--bad);margin:0;padding:.3rem .7rem}
-.btn[disabled]{opacity:.5}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.tabs{display:flex;gap:.4rem;margin-bottom:.6rem}.tabs button{flex:1;background:none;border:1px solid var(--line);border-radius:8px;padding:.45rem;font:inherit;color:var(--ink);cursor:pointer}.tabs [aria-selected=true]{background:var(--em);color:#fff;border-color:var(--em)}
-.msg{margin-top:.8rem;padding:.5rem .7rem;border-radius:8px;background:rgba(212,160,23,.14);border:1px solid var(--gold)}.msg:empty{display:none}
-table{width:100%;border-collapse:collapse}th,td{padding:.6rem;text-align:start;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mute);font-weight:500}
-.wrap{overflow-x:auto}.badge{padding:.1rem .6rem;border:1px solid currentColor;border-radius:99px;font-size:.82rem}
-.pending{color:#b45309}.active{color:#0f7a56}.suspended,.rejected{color:var(--bad)}.note{color:var(--mute);font-size:.92rem}.row{display:flex;gap:.4rem;flex-wrap:wrap}
-.grid{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:1rem 0}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem}
+.hp{position:absolute;inset-inline-start:-9999px}#fm{grid-column:1/-1;padding:.5rem .7rem;border-radius:8px}#fm:empty{display:none}
+footer{background:var(--navy);color:#9db;padding:2rem 0;text-align:center;font-size:.92rem}
 </style>
 </head>
 <body>
-<header><b>New Space</b><span id="who"></span><button class="lk" id="lang"></button><button class="lk" id="out" hidden></button></header>
-<main id="app"></main>
+<header><div class="w"><a class="logo" href="#top">New Space</a>
+<nav><a href="#services" data-i="nS"></a><a href="#how" data-i="nH"></a><a href="#why" data-i="nW"></a><a href="#request" data-i="nR"></a><a href="#join" data-i="nJ"></a></nav>
+<button class="lk" id="lang"></button><a class="btn dk" href="app.html" data-i="login"></a></div></header>
+
+<div class="hero" id="top"><div class="w">
+<div class="tag" data-i="tag"></div><h1 data-i="h1"></h1><p data-i="hp"></p>
+<div class="row"><a class="btn" href="#request" data-i="c1"></a><a class="btn o" href="app.html" data-i="c2"></a></div></div></div>
+
+<section id="services"><div class="w"><h2 data-i="nS"></h2><p class="sub" data-i="sS"></p><div class="grid" id="svc"></div></div></section>
+
+<section class="alt" id="how"><div class="w"><h2 data-i="nH"></h2><p class="sub" data-i="sH"></p><div class="grid" id="steps"></div></div></section>
+
+<section id="why"><div class="w"><h2 data-i="nW"></h2><p class="sub" data-i="sW"></p><div class="grid" id="whyg"></div></div></section>
+
+<section class="alt" id="request"><div class="w"><h2 data-i="nR"></h2><p class="sub" data-i="sR"></p>
+<form id="lead"><div><label for="co" data-i="fco"></label><input id="co" required maxlength="120" autocomplete="organization"></div>
+<div><label for="nm" data-i="fnm"></label><input id="nm" required maxlength="120" autocomplete="name"></div>
+<div><label for="ph" data-i="fph"></label><input id="ph" type="tel" maxlength="40" autocomplete="tel"></div>
+<div><label for="em" data-i="fem"></label><input id="em" type="email" maxlength="160" autocomplete="email"></div>
+<div class="full"><label for="sv" data-i="fsv"></label><select id="sv"></select></div>
+<div class="full"><label for="ms" data-i="fms"></label><textarea id="ms" rows="4" maxlength="2000"></textarea></div>
+<div class="hp" aria-hidden="true"><input id="web" tabindex="-1" autocomplete="off"></div>
+<div class="full"><button class="btn dk" id="send" data-i="send"></button></div><div id="fm" role="status"></div></form></div></section>
+
+<section id="join"><div class="w"><div class="cta"><div><h2 data-i="jT" style="margin:0"></h2><p data-i="jP"></p></div><a class="btn" href="app.html" data-i="jB"></a></div></div></section>
+<footer><div class="w">© <span id="yr"></span> New Space · Qatar</div></footer>
+
 <script>
-const SB_URL="https://ehhtcklnbwxjdlvjylqr.supabase.co",SB_KEY="sb_publishable_5hnwRyn13Q-2BOrllpDv0w_oQbgIXxU";
-const sb=supabase.createClient(SB_URL,SB_KEY);
-const T={ar:{login:"تسجيل الدخول",reg:"حساب جديد",email:"البريد الإلكتروني",pass:"كلمة المرور",name:"الاسم الكامل",phone:"رقم الجوال",forgot:"نسيت كلمة المرور؟",go:"دخول",create:"إنشاء الحساب",out:"خروج",lang:"English",
-checkMail:"تم إنشاء الحساب. إن طُلب منك تأكيد البريد فافتح الرسالة ثم سجّل الدخول.",resetSent:"أُرسل رابط استعادة كلمة المرور إلى بريدك.",needEmail:"اكتب بريدك أولاً.",newPass:"كلمة المرور الجديدة",save:"حفظ",passShort:"كلمة المرور 8 أحرف على الأقل.",
-pending:"طلبك قيد المراجعة",pendingP:"سيراجع المدير طلبك. ستظهر لك لوحتك بعد الموافقة.",rejected:"تم رفض الطلب",suspended:"الحساب موقوف",reason:"السبب",
-appForm:"أكمل طلب التوظيف",position:"الوظيفة المطلوبة",nat:"الجنسية",notes:"ملاحظات",submit:"إرسال الطلب",sent:"تم إرسال الطلب.",
-staffHome:"لوحة الموظف",staffP:"حسابك مفعّل. سيظهر هنا جدول عملك والتسجيل بالحضور في المرحلة التالية.",
-mgr:"إدارة الموظفين",owner:"لوحة المالك",colName:"الاسم",colPos:"الوظيفة",colSt:"الحالة",colRole:"الدور",appr:"موافقة",rej:"رفض",susp:"إيقاف",act:"تفعيل",rejWhy:"سبب الرفض؟",
-st:{pending:"بانتظار الموافقة",active:"نشط",suspended:"موقوف",rejected:"مرفوض"},rl:{staff:"موظف",admin:"مدير",owner:"مالك"},
-docs:"المستندات والفواتير (تجريبي)",err:"حدث خطأ: ",empty:"لا يوجد موظفون بعد.",roleNote:"تغيير الأدوار للمالك فقط."},
-en:{login:"Sign in",reg:"New account",email:"Email",pass:"Password",name:"Full name",phone:"Mobile number",forgot:"Forgot password?",go:"Sign in",create:"Create account",out:"Sign out",lang:"العربية",
-checkMail:"Account created. If email confirmation is required, open the message, then sign in.",resetSent:"A password reset link was sent to your email.",needEmail:"Enter your email first.",newPass:"New password",save:"Save",passShort:"Password must be at least 8 characters.",
-pending:"Your application is under review",pendingP:"An administrator will review it. Your dashboard appears once approved.",rejected:"Application rejected",suspended:"Account suspended",reason:"Reason",
-appForm:"Complete your application",position:"Position applied for",nat:"Nationality",notes:"Notes",submit:"Submit application",sent:"Application sent.",
-staffHome:"Staff dashboard",staffP:"Your account is active. Your schedule and attendance check-in arrive in the next phase.",
-mgr:"Staff management",owner:"Owner dashboard",colName:"Name",colPos:"Position",colSt:"Status",colRole:"Role",appr:"Approve",rej:"Reject",susp:"Suspend",act:"Activate",rejWhy:"Reason for rejection?",
-st:{pending:"Pending",active:"Active",suspended:"Suspended",rejected:"Rejected"},rl:{staff:"Staff",admin:"Admin",owner:"Owner"},
-docs:"Documents and invoices (demo)",err:"Error: ",empty:"No staff yet.",roleNote:"Only the owner can change roles."}};
-let L=localStorage.getItem("lang")||"ar",me=null,mode="login",recovery=false;
-const t=k=>T[L][k],$=s=>document.querySelector(s),app=$("#app");
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const say=m=>{const e=$("#msg");if(e)e.textContent=m};
-async function boot(){
- document.documentElement.lang=L;document.documentElement.dir=L=="ar"?"rtl":"ltr";$("#lang").textContent=t("lang");$("#out").textContent=t("out");
- const {data:{session}}=await sb.auth.getSession();
- $("#out").hidden=!session;
- if(recovery)return viewReset();
- if(!session){me=null;$("#who").textContent="";return viewAuth()}
- const {data,error}=await sb.from("profiles").select("*").eq("id",session.user.id).single();
- if(error||!data){app.innerHTML=`<div class="box"><p>${t("err")}${esc(error?.message)}</p></div>`;return}
- me=data;$("#who").textContent=`${me.full_name||session.user.email} · ${t("rl")[me.role]}`;
- if(me.status!="active")return viewStatus();
- if(me.role=="staff")return viewStaff();
- return viewManager();
-}
-function viewAuth(){
- const reg=mode=="reg";
- app.innerHTML=`<div class="box"><div class="tabs" role="tablist"><button role="tab" aria-selected="${!reg}" data-m="login">${t("login")}</button><button role="tab" aria-selected="${reg}" data-m="reg">${t("reg")}</button></div>
- <form id="f">${reg?`<label for="n">${t("name")}</label><input id="n" required autocomplete="name"><label for="p">${t("phone")}</label><input id="p" type="tel" required autocomplete="tel">`:""}
- <label for="e">${t("email")}</label><input id="e" type="email" required autocomplete="email">
- <label for="w">${t("pass")}</label><input id="w" type="password" required minlength="8" autocomplete="${reg?"new":"current"}-password">
- <button class="btn" id="go">${reg?t("create"):t("go")}</button></form>
- ${reg?"":`<p><button class="lk" id="fg" style="color:var(--em)">${t("forgot")}</button></p>`}<div class="msg" id="msg" role="status"></div></div>`;
- document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;viewAuth()});
- $("#fg")&&($("#fg").onclick=async()=>{const e=$("#e").value;if(!e)return say(t("needEmail"));
-  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin});say(error?t("err")+error.message:t("resetSent"))});
- $("#f").onsubmit=async ev=>{ev.preventDefault();$("#go").disabled=true;const e=$("#e").value.trim(),w=$("#w").value;let r;
-  if(reg)r=await sb.auth.signUp({email:e,password:w,options:{data:{full_name:$("#n").value.trim(),phone:$("#p").value.trim()}}});
-  else r=await sb.auth.signInWithPassword({email:e,password:w});
-  $("#go").disabled=false;
-  if(r.error)return say(t("err")+r.error.message);
-  if(reg&&!r.data.session){mode="login";viewAuth();return say(t("checkMail"))}
-  boot()};
-}
-function viewReset(){
- app.innerHTML=`<div class="box"><h2>${t("newPass")}</h2><form id="f"><input id="w" type="password" minlength="8" required autocomplete="new-password" aria-label="${t("newPass")}"><button class="btn">${t("save")}</button></form><div class="msg" id="msg"></div></div>`;
- $("#f").onsubmit=async ev=>{ev.preventDefault();const w=$("#w").value;if(w.length<8)return say(t("passShort"));
-  const {error}=await sb.auth.updateUser({password:w});if(error)return say(t("err")+error.message);recovery=false;history.replaceState(null,"",location.pathname);boot()};
-}
-async function viewStatus(){
- const s=me.status,{data:ap}=await sb.from("staff_applications").select("*").eq("profile_id",me.id).maybeSingle();
- let h=`<div class="box"><h2>${s=="pending"?t("pending"):s=="rejected"?t("rejected"):t("suspended")}</h2>`;
- if(s=="pending")h+=`<p class="note">${t("pendingP")}</p>`;
- if(me.rejection_reason)h+=`<p><b>${t("reason")}:</b> ${esc(me.rejection_reason)}</p>`;
- if(s=="pending"&&!ap)h+=`<h2 style="margin-top:1rem">${t("appForm")}</h2><form id="f"><label for="a">${t("position")}</label><input id="a" required><label for="b">${t("nat")}</label><input id="b" required><label for="c">${t("notes")}</label><textarea id="c" rows="3"></textarea><button class="btn">${t("submit")}</button></form>`;
- app.innerHTML=h+`<div class="msg" id="msg"></div></div>`;
- $("#f")&&($("#f").onsubmit=async ev=>{ev.preventDefault();
-  const {error}=await sb.from("staff_applications").insert({profile_id:me.id,position:$("#a").value.trim(),nationality:$("#b").value.trim(),notes:$("#c").value.trim()});
-  if(error)return say(t("err")+error.message);viewStatus();})
-}
-function viewStaff(){app.innerHTML=`<div class="box wide"><h1>${t("staffHome")}</h1><p>${t("staffP")}</p></div>`}
-async function viewManager(){
- const owner=me.role=="owner";
- const {data,error}=await sb.from("profiles").select("*,staff_applications!profile_id(position,nationality)").order("created_at",{ascending:false});
- if(error)return app.innerHTML=`<div class="box"><p>${t("err")}${esc(error.message)}</p></div>`;
- const rows=data.filter(p=>p.id!=me.id).map(p=>{const a=[].concat(p.staff_applications||[])[0]||{};
-  const acts=p.status=="pending"?`<button class="btn alt" data-a="active" data-id="${p.id}">${t("appr")}</button> <button class="btn bad" data-a="rejected" data-id="${p.id}">${t("rej")}</button>`:
-   p.status=="active"?`<button class="btn bad" data-a="suspended" data-id="${p.id}">${t("susp")}</button>`:`<button class="btn alt" data-a="active" data-id="${p.id}">${t("act")}</button>`;
-  const role=owner?`<select data-r="${p.id}" aria-label="${t("colRole")}">${["staff","admin","owner"].map(r=>`<option value="${r}" ${r==p.role?"selected":""}>${t("rl")[r]}</option>`).join("")}</select>`:esc(t("rl")[p.role]);
-  return `<tr><td>${esc(p.full_name)}<br><span class="note">${esc(p.phone)}</span></td><td>${esc(a.position||"—")}<br><span class="note">${esc(a.nationality||"")}</span></td><td><span class="badge ${p.status}">${t("st")[p.status]}</span></td><td>${role}</td><td><div class="row">${acts}</div></td></tr>`}).join("");
- const c=s=>data.filter(p=>p.status==s&&p.id!=me.id).length;
- app.innerHTML=`<h1>${owner?t("owner"):t("mgr")}</h1><div class="grid"><div class="card"><b>${c("pending")}</b><br>${t("st").pending}</div><div class="card"><b>${c("active")}</b><br>${t("st").active}</div><div class="card"><b>${c("suspended")+c("rejected")}</b><br>${t("st").suspended} / ${t("st").rejected}</div></div>
- <div class="card wrap"><table><thead><tr><th>${t("colName")}</th><th>${t("colPos")}</th><th>${t("colSt")}</th><th>${t("colRole")}</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="5">${t("empty")}</td></tr>`}</tbody></table></div>
- ${owner?"":`<p class="note">${t("roleNote")}</p>`}<p><a href="documents.html" style="color:var(--em)">${t("docs")}</a></p><div class="msg" id="msg"></div>`;
- app.onclick=async e=>{const b=e.target.closest("[data-a]");if(!b)return;let patch={status:b.dataset.a};
-  if(patch.status=="rejected"){const r=prompt(t("rejWhy"));if(r===null)return;patch.rejection_reason=r||null}else patch.rejection_reason=null;
-  const {error}=await sb.from("profiles").update(patch).eq("id",b.dataset.id);error?say(t("err")+error.message):viewManager()};
- app.onchange=async e=>{const id=e.target.dataset.r;if(!id)return;
-  const {error}=await sb.from("profiles").update({role:e.target.value}).eq("id",id);error?say(t("err")+error.message):viewManager()};
-}
-$("#lang").onclick=()=>{L=L=="ar"?"en":"ar";localStorage.setItem("lang",L);boot()};
-$("#out").onclick=async()=>{await sb.auth.signOut();boot()};
-sb.auth.onAuthStateChange(ev=>{if(ev=="PASSWORD_RECOVERY"){recovery=true;boot()}});
-boot();
+const SB="https://ehhtcklnbwxjdlvjylqr.supabase.co",KEY="sb_publishable_5hnwRyn13Q-2BOrllpDv0w_oQbgIXxU";
+const D={ar:{nS:"خدماتنا",nH:"كيف نعمل",nW:"لماذا نيو سبيس",nR:"اطلب عمالة",nJ:"انضم إلينا",login:"تسجيل الدخول",tag:"توريد العمالة والكوادر في قطر",
+h1:"فرق جاهزة لفعالياتك ومشاريعك",hp:"نوفّر كوادر مدرَّبة وموثّقة للفعاليات والضيافة والتشغيل، مع جدولة واضحة ومتابعة للحضور وتقارير شفافة.",c1:"اطلب فريقك الآن",c2:"بوابة الموظفين والإدارة",
+sS:"حلول توظيف مرنة تناسب حجم مشروعك ومدته.",
+svc:[["١","كوادر الفعاليات","مضيفون ومضيفات ومنظّمو دخول وموظفو تسجيل واستقبال للمؤتمرات والمعارض والمناسبات."],["٢","الضيافة والمطاعم","طواقم خدمة وقاعات وولائم وتموين بمستوى احترافي."],["٣","مشرفون وقادة فرق","مشرفون ميدانيون يقودون الفريق ويضمنون سير العمل وفق خطتك."],["٤","توظيف عاجل وبالجملة","فرق كاملة للافتتاحات والمواسم والأحداث الكبرى بمهلة قصيرة."],["٥","إدارة القوى العاملة","جداول عمل ومتابعة حضور وانصراف وساعات مسجّلة وتقارير لكل مشروع."],["٦","ملفات موثّقة","لا يُفعَّل أي موظف قبل مراجعة مستنداته واعتماده من الإدارة."]],
+sH:"أربع خطوات من الطلب إلى التقرير.",steps:[["١","أخبرنا باحتياجك","نوع العمل وعدد الأفراد والتاريخ والموقع."],["٢","نرشّح ونؤكد الفريق","نختار الأنسب من موظفينا المعتمدين ونؤكد الجدول معك."],["٣","التنفيذ والمتابعة","ينفّذ الفريق مهامه مع متابعة الحضور والانصراف."],["٤","التقرير والفوترة","ساعات مسجلة وفاتورة واضحة بعملة الريال القطري."]],
+sW:"ما يميّز طريقة عملنا.",why:[["موظفون معتمدون","مراجعة المستندات قبل التفعيل."],["جدولة واضحة","كل موظف يعرف موقعه ووقته ومهمته."],["شفافية","ساعات وتقارير يمكن الرجوع إليها."],["عربي وإنجليزي","تواصل ومنصة بلغتين."]],
+sR:"اكتب لنا تفاصيل احتياجك وسنعاود الاتصال بك.",fco:"اسم الشركة",fnm:"اسم المسؤول",fph:"رقم الجوال",fem:"البريد الإلكتروني",fsv:"نوع الخدمة",fms:"تفاصيل الطلب (العدد، التاريخ، الموقع)",send:"إرسال الطلب",
+need:"اكتب جوالك أو بريدك ليتواصل معك فريقنا.",ok:"وصل طلبك، سنتواصل معك قريباً.",bad:"تعذّر الإرسال، حاول مرة أخرى.",jT:"هل تبحث عن عمل؟",jP:"سجّل حسابك وارفع مستنداتك، وستراجعها الإدارة.",jB:"قدّم طلبك"},
+en:{nS:"Services",nH:"How we work",nW:"Why New Space",nR:"Request staff",nJ:"Join us",login:"Sign in",tag:"Manpower supply in Qatar",
+h1:"Ready teams for your events and projects",hp:"Trained, documented staff for events, hospitality and operations, with clear scheduling, attendance tracking and transparent reporting.",c1:"Request your team",c2:"Staff and admin portal",
+sS:"Flexible staffing that fits the size and duration of your project.",
+svc:[["1","Event staffing","Hosts, hostesses, ushers and registration staff for conferences, exhibitions and occasions."],["2","Hospitality and F&B","Service teams for venues, banquets and catering at a professional standard."],["3","Supervisors and team leaders","Field supervisors who lead the team and keep work on plan."],["4","Urgent and bulk hiring","Complete teams for openings, peak seasons and large events on short notice."],["5","Workforce management","Work schedules, check-in and check-out tracking, recorded hours and per-project reports."],["6","Documented staff files","No employee is activated before documents are reviewed and approved by management."]],
+sH:"Four steps from request to report.",steps:[["1","Tell us what you need","Type of work, headcount, date and location."],["2","We shortlist and confirm","We pick the best-fit approved staff and confirm the schedule with you."],["3","Delivery and follow-up","The team works while attendance is tracked."],["4","Report and invoice","Recorded hours and a clear invoice in Qatari riyals."]],
+sW:"What sets our way of working apart.",why:[["Approved staff","Documents reviewed before activation."],["Clear scheduling","Every employee knows place, time and task."],["Transparency","Hours and reports you can refer back to."],["Arabic and English","Communication and platform in two languages."]],
+sR:"Tell us what you need and we will get back to you.",fco:"Company name",fnm:"Contact person",fph:"Mobile number",fem:"Email",fsv:"Service type",fms:"Request details (headcount, date, location)",send:"Send request",
+need:"Add a phone or email so our team can reach you.",ok:"Request received. We will contact you shortly.",bad:"Could not send. Please try again.",jT:"Looking for work?",jP:"Create your account and upload your documents. Management will review them.",jB:"Apply now"}};
+let L=localStorage.getItem("lang")||"ar";const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function draw(){const d=D[L];document.documentElement.lang=L;document.documentElement.dir=L=="ar"?"rtl":"ltr";$("#lang").textContent=L=="ar"?"English":"العربية";
+ document.querySelectorAll("[data-i]").forEach(e=>e.textContent=d[e.dataset.i]);
+ $("#svc").innerHTML=d.svc.map(x=>`<div class="card"><div class="ic">${x[0]}</div><h3>${esc(x[1])}</h3><p>${esc(x[2])}</p></div>`).join("");
+ $("#steps").innerHTML=d.steps.map(x=>`<div class="card step"><b>${x[0]}</b><h3>${esc(x[1])}</h3><p>${esc(x[2])}</p></div>`).join("");
+ $("#whyg").innerHTML=d.why.map(x=>`<div class="card"><h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></div>`).join("");
+ const v=$("#sv").value;$("#sv").innerHTML=d.svc.map((x,i)=>`<option value="${esc(x[1])}">${esc(x[1])}</option>`).join("");if(v)$("#sv").value=v;}
+$("#lang").onclick=()=>{L=L=="ar"?"en":"ar";localStorage.setItem("lang",L);draw()};
+$("#lead").onsubmit=async e=>{e.preventDefault();const d=D[L],m=$("#fm");
+ if($("#web").value)return;if(!$("#ph").value.trim()&&!$("#em").value.trim()){m.textContent=d.need;return}
+ $("#send").disabled=true;
+ try{const r=await fetch(SB+"/rest/v1/leads",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json",Prefer:"return=minimal"},
+  body:JSON.stringify({company:$("#co").value.trim(),contact_name:$("#nm").value.trim(),phone:$("#ph").value.trim()||null,email:$("#em").value.trim()||null,service:$("#sv").value,message:$("#ms").value.trim()||null})});
+  if(!r.ok)throw 0;m.textContent=d.ok;e.reset();draw()}catch{m.textContent=d.bad}
+ $("#send").disabled=false};
+$("#yr").textContent=new Date().getFullYear();draw();
 </script>
 </body>
 </html>
