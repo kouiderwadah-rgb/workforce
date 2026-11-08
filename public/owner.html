@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>New Space | Owner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/base.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="site-head" id="head"></header>
+<main class="wrap">
+  <div class="between">
+    <h1 id="pageTitle">Owner</h1>
+    <span class="note" id="pageNote"></span>
+  </div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div id="view"><div class="card"><span class="spinner"></span> <span id="loadingText"></span></div></div>
+</main>
+<script src="assets/core.js"></script>
+<script>
+(function () {
+  "use strict";
+  var NS = window.NS;
+  var t = NS.t;
+  var sb = NS.sb;
+
+  var me = null;
+  var tab = "overview";
+  var profiles = [];
+  var docs = [];
+  var invoices = [];
+  var expenses = [];
+  var projects = [];
+  var photos = {};
+  var leads = [];
+  var audit = [];
+  var reports = [];
+  var charts = [];
+  var userQuery = "";
+  var auditFilter = "";
+  var leadQuery = "";
+  var saving = false;
+  var periodKind = "30d";
+  var period = { start: "", end: "" };
+  var currentReport = null;
+  var reportLang = NS.lang || "ar";
+
+  NS.extendDict({
+    ar: {
+      ownerTitle: "لوحة المالك",
+      tabsOverview: "نظرة عامة",
+      tabsUsers: "المستخدمون",
+      tabsAudit: "سجل التدقيق",
+      tabsLeads: "الطلبات",
+      tabsReport: "تقرير الذكاء",
+      loading: "جارٍ التحميل…",
+      period: "الفترة",
+      p30: "آخر 30 يوماً",
+      pMonth: "هذا الشهر",
+      pQuarter: "هذا الربع",
+      pYear: "هذه السنة",
+      pCustom: "مخصص",
+      from: "من",
+      to: "إلى",
+      kpiStaff: "الموظفون المعتمدون",
+      kpiPending: "بانتظار الموافقة",
+      kpiDocs: "مستندات بانتظار المراجعة",
+      kpiInvoices: "إجمالي الفواتير",
+      kpiExpenses: "إجمالي المصروفات",
+      kpiNet: "الصافي",
+      kpiLeads: "طلبات العملاء",
+      kpiExpiring: "مستندات تنتهي قريباً",
+      kpiTransport: "تكلفة النقل",
+      kpiReceivables: "مستحقات غير مدفوعة",
+      kpiOverdue: "مستحقات متأخرة",
+      chartCash: "التدفق المالي (6 أشهر)",
+      chartTeam: "توزيع الفريق",
+      chartExpensesCat: "المصروفات حسب التصنيف",
+      topProjects: "أعلى 5 مشاريع بالتكلفة",
+      noTopProjects: "لا توجد مصروفات مرتبطة بمشاريع في هذه الفترة.",
+      projectName: "المشروع",
+      projectCost: "التكلفة",
+      invoicesLabel: "فواتير",
+      expensesLabel: "مصروفات",
+      alerts: "تنبيهات",
+      alertsNone: "لا توجد تنبيهات حالياً.",
+      expiringSoon: "تنتهي خلال 30 يوماً",
+      expiredLabel: "منتهية",
+      userMgmt: "إدارة المستخدمين",
+      searchUsers: "بحث بالاسم أو البريد",
+      role: "الدور",
+      status: "الحالة",
+      selfAccount: "حسابك",
+      roleChanged: "تم تحديث الدور.",
+      statusChanged: "تم تحديث الحالة.",
+      canNotEditSelf: "لا يمكنك تعديل دورك أو حالتك من هنا.",
+      rejectReason: "سبب الرفض:",
+      noUsers: "لا يوجد مستخدمون.",
+      auditLog: "سجل التدقيق",
+      filterTable: "كل الجداول",
+      when: "التاريخ",
+      actor: "المستخدم",
+      action: "الإجراء",
+      table: "الجدول",
+      record: "السجل",
+      details: "التفاصيل",
+      noAudit: "لا توجد أحداث بعد.",
+      view: "عرض",
+      close: "إغلاق",
+      before: "قبل",
+      after: "بعد",
+      leadsTitle: "طلبات العملاء",
+      searchLeads: "بحث",
+      company: "الجهة",
+      contact: "التواصل",
+      service: "الخدمة",
+      message: "التفاصيل",
+      noLeads: "لا توجد طلبات.",
+      exportCsv: "تصدير CSV",
+      reportTitle: "تقرير الذكاء الاصطناعي",
+      reportHint: "يُحسب كل رقم على الخادم من قاعدة البيانات، ثم يُرسل إلى Gemini كأرقام فقط دون أي بيانات شخصية. يتطلب مفتاح الخدمة على الخادم.",
+      generate: "إنشاء التقرير",
+      generating: "جارٍ الإنشاء…",
+      history: "تقارير سابقة",
+      noReports: "لا توجد تقارير بعد.",
+      print: "طباعة",
+      reportEmpty: "اختر الفترة ثم أنشئ تقريراً.",
+      reportError: "تعذّر إنشاء التقرير.",
+      notConfigured: "واجهة التقرير تعمل على Vercel فقط (تتطلب متغيرات الخادم).",
+      rateLimited: "طلبات كثيرة. حاول بعد بضع دقائق.",
+      ownerOnly: "هذا الإجراء للمالك فقط.",
+      savedReport: "تم إنشاء التقرير وحفظه.",
+      generatedAt: "أُنشئ في",
+      metrics: "الأرقام الرئيسية",
+      count: "العدد",
+      reportLang: "لغة التقرير",
+      figPrevious: "السابق",
+      figRevenue: "الإيرادات",
+      figExpenses: "المصروفات",
+      figNet: "الصافي",
+      figTransport: "النقل",
+      figTransportShare: "نسبة النقل من المصروفات",
+      figUnpaid: "فواتير غير مدفوعة",
+      figOverdue: "فواتير متأخرة",
+      figDocs: "مستندات تنتهي خلال 30 يوماً",
+      figPending: "موافقات معلقة",
+      figLeads: "تحويل الطلبات",
+      figCategories: "المصروفات حسب التصنيف",
+      figCount: "العدد",
+      categoryLabels: {
+        client: "فاتورة عميل",
+        supplier: "فاتورة مورد",
+        salaries: "رواتب",
+        transport: "نقل",
+        fuel: "وقود",
+        rent: "إيجار",
+        utilities: "خدمات",
+        supplies: "مستلزمات",
+        maintenance: "صيانة",
+        accommodation: "إقامة",
+        food: "إعاشة",
+        uniforms: "زي موحد",
+        equipment: "معدات",
+        other: "أخرى",
+      },
+    },
+    en: {
+      ownerTitle: "Owner dashboard",
+      tabsOverview: "Overview",
+      tabsUsers: "Users",
+      tabsAudit: "Audit log",
+      tabsLeads: "Leads",
+      tabsReport: "AI report",
+      loading: "Loading…",
+      period: "Period",
+      p30: "Last 30 days",
+      pMonth: "This month",
+      pQuarter: "This quarter",
+      pYear: "This year",
+      pCustom: "Custom",
+      from: "From",
+      to: "To",
+      kpiStaff: "Approved staff",
+      kpiPending: "Awaiting approval",
+      kpiDocs: "Documents awaiting review",
+      kpiInvoices: "Invoice total",
+      kpiExpenses: "Expense total",
+      kpiNet: "Net",
+      kpiLeads: "Client leads",
+      kpiExpiring: "Documents expiring soon",
+      kpiTransport: "Transport cost",
+      kpiReceivables: "Unpaid receivables",
+      kpiOverdue: "Overdue receivables",
+      chartCash: "Cash flow (6 months)",
+      chartTeam: "Team distribution",
+      chartExpensesCat: "Expenses by category",
+      topProjects: "Top 5 projects by cost",
+      noTopProjects: "No project-linked expenses in this period.",
+      projectName: "Project",
+      projectCost: "Cost",
+      invoicesLabel: "Invoices",
+      expensesLabel: "Expenses",
+      alerts: "Alerts",
+      alertsNone: "No alerts right now.",
+      expiringSoon: "Expires within 30 days",
+      expiredLabel: "Expired",
+      userMgmt: "User management",
+      searchUsers: "Search by name or email",
+      role: "Role",
+      status: "Status",
+      selfAccount: "Your account",
+      roleChanged: "Role updated.",
+      statusChanged: "Status updated.",
+      canNotEditSelf: "You cannot change your own role or status here.",
+      rejectReason: "Reason for rejection:",
+      noUsers: "No users.",
+      auditLog: "Audit log",
+      filterTable: "All tables",
+      when: "When",
+      actor: "User",
+      action: "Action",
+      table: "Table",
+      record: "Record",
+      details: "Details",
+      noAudit: "No events yet.",
+      view: "View",
+      close: "Close",
+      before: "Before",
+      after: "After",
+      leadsTitle: "Client leads",
+      searchLeads: "Search",
+      company: "Company",
+      contact: "Contact",
+      service: "Service",
+      message: "Details",
+      noLeads: "No leads.",
+      exportCsv: "Export CSV",
+      reportTitle: "AI report",
+      reportHint: "Every figure is computed server-side from the database, then only the numbers are sent to Gemini — no personal data. Requires server environment variables.",
+      generate: "Generate report",
+      generating: "Generating…",
+      history: "Previous reports",
+      noReports: "No reports yet.",
+      print: "Print",
+      reportEmpty: "Choose a period, then generate a report.",
+      reportError: "Could not generate the report.",
+      notConfigured: "The report endpoint runs on Vercel only (server variables required).",
+      rateLimited: "Too many requests. Try again in a few minutes.",
+      ownerOnly: "Owner only.",
+      savedReport: "Report generated and saved.",
+      generatedAt: "Generated",
+      metrics: "Key figures",
+      count: "Count",
+      reportLang: "Report language",
+      figPrevious: "Previous",
+      figRevenue: "Revenue",
+      figExpenses: "Expenses",
+      figNet: "Net",
+      figTransport: "Transport",
+      figTransportShare: "Transport share of expenses",
+      figUnpaid: "Unpaid invoices",
+      figOverdue: "Overdue invoices",
+      figDocs: "Documents expiring within 30 days",
+      figPending: "Pending approvals",
+      figLeads: "Lead conversion",
+      figCategories: "Expenses by category",
+      figCount: "Count",
+      categoryLabels: {
+        client: "Client invoice",
+        supplier: "Supplier invoice",
+        salaries: "Salaries",
+        transport: "Transport",
+        fuel: "Fuel",
+        rent: "Rent",
+        utilities: "Utilities",
+        supplies: "Supplies",
+        maintenance: "Maintenance",
+        accommodation: "Accommodation",
+        food: "Food",
+        uniforms: "Uniforms",
+        equipment: "Equipment",
+        other: "Other",
+      },
+    },
+  });
+
+  function catLabel(key) {
+    return (NS.t("categoryLabels") || {})[key] || key || "—";
+  }
+
+  function badge(status) {
+    return '<span class="badge ' + NS.esc(status) + '">' + NS.esc(NS.statusLabel(status)) + "</span>";
+  }
+
+  function drawTabs() {
+    var tabs = [
+      ["overview", t("tabsOverview")],
+      ["users", t("tabsUsers")],
+      ["audit", t("tabsAudit")],
+      ["leads", t("tabsLeads")],
+      ["report", t("tabsReport")],
+    ];
+    NS.$("#tabs").innerHTML = tabs.map(function (x) {
+      return '<button class="tab" role="tab" type="button" aria-selected="' + (tab === x[0]) +
+        '" data-tab="' + x[0] + '">' + NS.esc(x[1]) + "</button>";
+    }).join("");
+  }
+
+  function draw() {
+    NS.$("#pageTitle").textContent = t("ownerTitle");
+    NS.$("#pageNote").textContent = me.full_name || "";
+    drawTabs();
+    destroyCharts();
+    var host = NS.$("#view");
+    if (host) {
+      host.onclick = null;
+      host.onchange = null;
+    }
+    if (tab === "overview") drawOverview();
+    else if (tab === "users") drawUsers();
+    else if (tab === "audit") drawAudit();
+    else if (tab === "leads") drawLeads();
+    else drawReport();
+  }
+
+  /* Period ---------------------------------------------------------------- */
+  function computePeriod(kind) {
+    var now = new Date();
+    var start;
+    var end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (kind === "month") start = new Date(now.getFullYear(), now.getMonth(), 1);
+    else if (kind === "quarter") start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+    else if (kind === "year") start = new Date(now.getFullYear(), 0, 1);
+    else start = new Date(end.getTime() - 29 * 86400000);
+    return { start: iso(start), end: iso(end) };
+  }
+
+  function iso(d) {
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+
+  function inRange(dateStr) {
+    if (!dateStr) return false;
+    var d = String(dateStr).slice(0, 10);
+    return d >= period.start && d <= period.end;
+  }
+
+  function categoryTotals(rows) {
+    var out = {};
+    rows.forEach(function (r) {
+      var k = r.category || "other";
+      out[k] = (out[k] || 0) + (Number(r.amount) || 0);
+    });
+    return out;
+  }
+
+  function topProjectRows(rows) {
+    var totals = {};
+    rows.forEach(function (r) {
+      if (!r.project_id) return;
+      totals[r.project_id] = (totals[r.project_id] || 0) + (Number(r.amount) || 0);
+    });
+    return Object.keys(totals)
+      .map(function (id) {
+        var pr = projects.find(function (x) { return x.id === id; });
+        return { id: id, name: pr ? pr.name : id, total: totals[id] };
+      })
+      .sort(function (a, b) { return b.total - a.total; })
+      .slice(0, 5);
+  }
+
+  /* Overview -------------------------------------------------------------- */
+  function drawOverview() {
+    var teamActive = profiles.filter(function (p) { return NS.APPROVED.includes(p.status); }).length;
+    var teamPending = profiles.filter(function (p) { return p.status === "pending"; }).length;
+    var docsPending = docs.filter(function (d) { return d.status === "pending"; }).length;
+    var inPeriod = invoices.filter(function (r) { return inRange(r.issue_date); });
+    var exPeriod = expenses.filter(function (r) { return inRange(r.expense_date); });
+    var invTotal = inPeriod.reduce(function (s, r) { return s + (Number(r.total) || 0); }, 0);
+    var exTotal = exPeriod.reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
+    var newLeads = leads.filter(function (l) { return inRange(l.created_at); });
+    var expiring = docs.filter(function (d) {
+      if (!d.expires_on) return false;
+      var end = new Date(d.expires_on + "T23:59:59").getTime();
+      return end < Date.now() + 30 * 86400000;
+    });
+    var transportTotal = exPeriod.reduce(function (s, r) {
+      return s + (r.category === "transport" ? Number(r.amount) || 0 : 0);
+    }, 0);
+    var transportShare = exTotal > 0 ? (transportTotal / exTotal) * 100 : 0;
+    var openInvoices = invoices.filter(function (r) { return r.status !== "paid"; });
+    var unpaidTotal = openInvoices.reduce(function (s, r) { return s + (Number(r.total) || 0); }, 0);
+    var today = NS.today();
+    var overdueInvoices = openInvoices.filter(function (r) { return r.due_date && r.due_date < today; });
+    var overdueTotal = overdueInvoices.reduce(function (s, r) { return s + (Number(r.total) || 0); }, 0);
+    var topRows = topProjectRows(exPeriod);
+
+    var topHtml = topRows.length
+      ? '<div class="table-wrap"><table><thead><tr><th>' + NS.esc(t("projectName")) + "</th><th>" +
+        NS.esc(t("projectCost")) + "</th></tr></thead><tbody>" +
+        topRows.map(function (r) {
+          return "<tr><td>" + NS.esc(r.name) + "</td><td>" + NS.esc(NS.fmtMoney(r.total)) + "</td></tr>";
+        }).join("") + "</tbody></table></div>"
+      : '<div class="empty">' + NS.esc(t("noTopProjects")) + "</div>";
+
+    var periods = [["30d", t("p30")], ["month", t("pMonth")], ["quarter", t("pQuarter")], ["year", t("pYear")], ["custom", t("pCustom")]];
+
+    var alertHtml = "";
+    if (expiring.length) {
+      alertHtml = '<div class="alert"><b>' + NS.esc(t("alerts")) + ":</b><ul style=\"margin:.4rem 0 0;padding-inline-start:1.2rem\">" +
+        expiring.slice(0, 6).map(function (d) {
+          var p = profiles.find(function (x) { return x.id === d.profile_id; }) || {};
+          var expired = new Date(d.expires_on + "T23:59:59").getTime() < Date.now();
+          return '<li><div class="row">' + NS.avatarHtml(p.full_name, photos[p.id]) + "<span>" +
+            NS.esc(p.full_name || d.profile_id) + " · " +
+            NS.esc((NS.t("dt") || {})[d.doc_type] || d.doc_type) + " · " +
+            NS.esc(NS.fmtDate(d.expires_on)) + " " +
+            '<span class="badge ' + (expired ? "rejected" : "pending") + '">' +
+            NS.esc(expired ? t("expiredLabel") : t("expiringSoon")) + "</span></span></div></li>";
+        }).join("") + "</ul></div>";
+    }
+
+    NS.$("#view").innerHTML =
+      '<div class="card" style="margin-bottom:1rem"><div class="row">' +
+      '<label for="periodKind" style="margin:0">' + NS.esc(t("period")) + "</label>" +
+      '<select id="periodKind" style="max-width:180px">' +
+      periods.map(function (p) {
+        return '<option value="' + p[0] + '"' + (periodKind === p[0] ? " selected" : "") + ">" + NS.esc(p[1]) + "</option>";
+      }).join("") + "</select>" +
+      '<label for="pStart" style="margin:0">' + NS.esc(t("from")) + "</label>" +
+      '<input id="pStart" type="date" value="' + NS.esc(period.start) + '" style="max-width:170px">' +
+      '<label for="pEnd" style="margin:0">' + NS.esc(t("to")) + "</label>" +
+      '<input id="pEnd" type="date" value="' + NS.esc(period.end) + '" style="max-width:170px">' +
+      "</div></div>" +
+      alertHtml +
+      '<div class="grid" style="margin:1rem 0">' +
+      '<div class="kpi good"><b>' + NS.fmtNum(teamActive) + "</b><span>" + NS.esc(t("kpiStaff")) + "</span></div>" +
+      '<div class="kpi warn"><b>' + NS.fmtNum(teamPending) + "</b><span>" + NS.esc(t("kpiPending")) + "</span></div>" +
+      '<div class="kpi warn"><b>' + NS.fmtNum(docsPending) + "</b><span>" + NS.esc(t("kpiDocs")) + "</span></div>" +
+      '<div class="kpi"><b>' + NS.esc(NS.fmtMoney(invTotal)) + "</b><span>" + NS.esc(t("kpiInvoices")) + "</span></div>" +
+      '<div class="kpi bad"><b>' + NS.esc(NS.fmtMoney(exTotal)) + "</b><span>" + NS.esc(t("kpiExpenses")) + "</span></div>" +
+      '<div class="kpi ' + (invTotal - exTotal >= 0 ? "good" : "bad") + '"><b>' + NS.esc(NS.fmtMoney(invTotal - exTotal)) + "</b><span>" + NS.esc(t("kpiNet")) + "</span></div>" +
+      '<div class="kpi"><b>' + NS.fmtNum(newLeads.length) + "</b><span>" + NS.esc(t("kpiLeads")) + "</span></div>" +
+      '<div class="kpi warn"><b>' + NS.fmtNum(expiring.length) + "</b><span>" + NS.esc(t("kpiExpiring")) + "</span></div>" +
+      '<div class="kpi"><b>' + NS.esc(NS.fmtMoney(transportTotal)) + "</b><span>" + NS.esc(t("kpiTransport")) + " · " + Math.round(transportShare) + "%</span></div>" +
+      '<div class="kpi bad"><b>' + NS.esc(NS.fmtMoney(unpaidTotal)) + "</b><span>" + NS.esc(t("kpiReceivables")) + "</span></div>" +
+      '<div class="kpi warn"><b>' + NS.esc(NS.fmtMoney(overdueTotal)) + "</b><span>" + NS.esc(t("kpiOverdue")) + " · " + NS.fmtNum(overdueInvoices.length) + "</span></div>" +
+      "</div>" +
+      '<div class="grid" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">' +
+      '<div class="card"><h2>' + NS.esc(t("chartCash")) + '</h2><div class="chart-box"><canvas id="cashChart"></canvas></div></div>' +
+      '<div class="card"><h2>' + NS.esc(t("chartTeam")) + '</h2><div class="chart-box"><canvas id="teamChart"></canvas></div></div>' +
+      "</div>" +
+      '<div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:1rem">' +
+      '<div class="card"><h2>' + NS.esc(t("chartExpensesCat")) + '</h2><div class="chart-box"><canvas id="expenseChart"></canvas></div></div>' +
+      '<div class="card"><h2>' + NS.esc(t("topProjects")) + "</h2>" + topHtml + "</div>" +
+      "</div>";
+
+    NS.$("#periodKind").addEventListener("change", function (e) {
+      periodKind = e.target.value;
+      if (periodKind !== "custom") period = computePeriod(periodKind);
+      drawOverview();
+    });
+    NS.$("#pStart").addEventListener("change", function (e) {
+      period.start = e.target.value;
+      periodKind = "custom";
+      drawOverview();
+    });
+    NS.$("#pEnd").addEventListener("change", function (e) {
+      period.end = e.target.value;
+      periodKind = "custom";
+      drawOverview();
+    });
+
+    buildCharts();
+  }
+
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function destroyCharts() {
+    charts.forEach(function (c) {
+      try { c.destroy(); } catch (_) { /* ignore */ }
+    });
+    charts = [];
+  }
+
+  function buildCharts() {
+    if (!window.Chart) return;
+    var ink = cssVar("--ink", "#14202b");
+    var line = cssVar("--line", "#d9e1e8");
+    var em = cssVar("--em", "#0f6b4f");
+    var gold = cssVar("--gold", "#d4a017");
+    var bad = cssVar("--bad", "#b91c1c");
+    var mute = cssVar("--mute", "#5d6d7b");
+
+    Chart.defaults.color = ink;
+    Chart.defaults.borderColor = line;
+
+    var months = [];
+    var invSeries = [];
+    var exSeries = [];
+    var now = new Date();
+    for (var i = 5; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      var key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+      months.push(
+        d.toLocaleDateString(NS.lang === "ar" ? "ar-QA" : "en-GB", { month: "short", year: "2-digit" })
+      );
+      invSeries.push(
+        invoices
+          .filter(function (r) { return String(r.issue_date || "").slice(0, 7) === key; })
+          .reduce(function (s, r) { return s + (Number(r.total) || 0); }, 0)
+      );
+      exSeries.push(
+        expenses
+          .filter(function (r) { return String(r.expense_date || "").slice(0, 7) === key; })
+          .reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0)
+      );
+    }
+
+    var cashEl = NS.$("#cashChart");
+    if (cashEl) {
+      charts.push(new Chart(cashEl, {
+        type: "bar",
+        data: {
+          labels: months,
+          datasets: [
+            { label: t("invoicesLabel"), data: invSeries, backgroundColor: em, borderRadius: 6 },
+            { label: t("expensesLabel"), data: exSeries, backgroundColor: gold, borderRadius: 6 },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: ink } } },
+          scales: {
+            x: { ticks: { color: mute }, grid: { color: line } },
+            y: { ticks: { color: mute }, grid: { color: line }, beginAtZero: true },
+          },
+        },
+      }));
+    }
+
+    var statuses = ["pending", "approved", "rejected", "suspended"];
+    var counts = statuses.map(function (s) {
+      if (s === "approved") {
+        return profiles.filter(function (p) { return NS.APPROVED.includes(p.status); }).length;
+      }
+      return profiles.filter(function (p) { return p.status === s; }).length;
+    });
+    var teamEl = NS.$("#teamChart");
+    if (teamEl) {
+      charts.push(new Chart(teamEl, {
+        type: "doughnut",
+        data: {
+          labels: statuses.map(function (s) { return NS.statusLabel(s); }),
+          datasets: [{
+            data: counts,
+            backgroundColor: [gold, em, bad, mute],
+            borderColor: cssVar("--card", "#fff"),
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom", labels: { color: ink } } },
+        },
+      }));
+    }
+
+    var catEl = NS.$("#expenseChart");
+    if (catEl) {
+      var totals = categoryTotals(expenses.filter(function (r) { return inRange(r.expense_date); }));
+      var keys = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
+      var palette = [em, gold, "#2f6fed", "#8b5cf6", "#e11d48", "#0ea5e9", "#f97316",
+        "#14b8a6", "#64748b", "#a16207", "#dc2626", "#7c3aed", "#059669", "#475569"];
+      charts.push(new Chart(catEl, {
+        type: "doughnut",
+        data: {
+          labels: keys.map(function (k) { return catLabel(k); }),
+          datasets: [{
+            data: keys.map(function (k) { return totals[k]; }),
+            backgroundColor: keys.map(function (_, i) { return palette[i % palette.length]; }),
+            borderColor: cssVar("--card", "#fff"),
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom", labels: { color: ink } } },
+        },
+      }));
+    }
+  }
+
+  /* Users ----------------------------------------------------------------- */
+  function drawUsers() {
+    var list = profiles.filter(function (p) {
+      if (!userQuery) return true;
+      var hay = ((p.full_name || "") + " " + (p.email || "") + " " + (p.phone || "")).toLowerCase();
+      return hay.indexOf(userQuery.toLowerCase()) !== -1;
+    });
+    var roleOptions = ["staff", "admin", "owner"];
+    var statusOptions = ["pending", "approved", "rejected", "suspended"];
+
+    var rows = list.map(function (p) {
+      var isSelf = p.id === me.id;
+      var roleCell = isSelf
+        ? '<span class="badge">' + NS.esc(NS.roleLabel(p.role)) + "</span>"
+        : '<select data-role="' + NS.esc(p.id) + '" aria-label="' + NS.esc(t("role")) + '">' +
+          roleOptions.map(function (r) {
+            return '<option value="' + r + '"' + (p.role === r ? " selected" : "") + ">" + NS.esc(NS.roleLabel(r)) + "</option>";
+          }).join("") + "</select>";
+      var statusCell = isSelf
+        ? badge(p.status)
+        : '<select data-status="' + NS.esc(p.id) + '" aria-label="' + NS.esc(t("status")) + '">' +
+          statusOptions.map(function (s) {
+            var sel = p.status === s || (s === "approved" && p.status === "active");
+            return '<option value="' + s + '"' + (sel ? " selected" : "") + ">" + NS.esc(NS.statusLabel(s)) + "</option>";
+          }).join("") + "</select>";
+      return "<tr>" +
+        '<td><div class="row">' + NS.avatarHtml(p.full_name, photos[p.id]) + "<div><b>" + NS.esc(p.full_name || "—") +
+        "</b>" + (isSelf ? ' <span class="note">(' + NS.esc(t("selfAccount")) + ")</span>" : "") +
+        '<br><span class="note">' + NS.esc(p.phone || p.email || "") + "</span></div></div></td>" +
+        "<td>" + NS.esc(p.position || "—") + "</td>" +
+        "<td>" + roleCell + "</td><td>" + statusCell + "</td></tr>";
+    }).join("");
+
+    NS.$("#view").innerHTML =
+      "<h2>" + NS.esc(t("userMgmt")) + "</h2>" +
+      '<div class="row" style="margin-bottom:.8rem"><input id="userQuery" type="search" placeholder="' +
+      NS.esc(t("searchUsers")) + '" value="' + NS.esc(userQuery) + '" style="max-width:300px"></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>' + NS.esc(t("name")) + "</th><th>" + NS.esc(t("position")) +
+      "</th><th>" + NS.esc(t("role")) + "</th><th>" + NS.esc(t("status")) + "</th></tr></thead><tbody>" +
+      (rows || '<tr><td colspan="4"><div class="empty">' + NS.esc(t("noUsers")) + "</div></td></tr>") +
+      "</tbody></table></div>";
+
+    var q = NS.$("#userQuery");
+    q.addEventListener("input", NS.debounce(function () {
+      userQuery = q.value;
+      drawUsers();
+      var again = NS.$("#userQuery");
+      if (again) {
+        again.focus();
+        again.setSelectionRange(again.value.length, again.value.length);
+      }
+    }, 300));
+
+    NS.$("#view").onchange = async function (e) {
+      var roleEl = e.target.closest("[data-role]");
+      if (roleEl) {
+        var id = roleEl.dataset.role;
+        var res = await sb.from("profiles").update({ role: roleEl.value }).eq("id", id);
+        if (res.error) return NS.toast(res.error.message, "error");
+        var p = profiles.find(function (x) { return x.id === id; });
+        if (p) p.role = roleEl.value;
+        NS.toast(t("roleChanged"));
+        return;
+      }
+      var stEl = e.target.closest("[data-status]");
+      if (stEl) {
+        var pid = stEl.dataset.status;
+        var status = stEl.value;
+        var reason = null;
+        if (status === "rejected") {
+          reason = window.prompt(t("rejectReason"), "");
+          if (reason === null) {
+            drawUsers();
+            return;
+          }
+        }
+        var out = await sb.from("profiles").update({
+          status: status,
+          rejection_reason: status === "rejected" ? (reason || null) : null,
+        }).eq("id", pid);
+        if (out.error) return NS.toast(out.error.message, "error");
+        var prof = profiles.find(function (x) { return x.id === pid; });
+        if (prof) {
+          prof.status = status;
+          prof.rejection_reason = status === "rejected" ? reason : null;
+        }
+        NS.toast(t("statusChanged"));
+      }
+    };
+  }
+
+  /* Audit ----------------------------------------------------------------- */
+  function drawAudit() {
+    var tables = Array.from(new Set(audit.map(function (a) { return a.table_name; }).filter(Boolean))).sort();
+    var rows = audit.filter(function (a) {
+      return !auditFilter || a.table_name === auditFilter;
+    });
+
+    NS.$("#view").innerHTML =
+      "<h2>" + NS.esc(t("auditLog")) + "</h2>" +
+      '<div class="row" style="margin-bottom:.8rem"><select id="auditFilter" style="max-width:240px"><option value="">' +
+      NS.esc(t("filterTable")) + "</option>" +
+      tables.map(function (tb) {
+        return '<option value="' + NS.esc(tb) + '"' + (auditFilter === tb ? " selected" : "") + ">" + NS.esc(tb) + "</option>";
+      }).join("") + "</select></div>" +
+      '<div class="table-wrap"><table><thead><tr><th>' + NS.esc(t("when")) + "</th><th>" + NS.esc(t("actor")) +
+      "</th><th>" + NS.esc(t("action")) + "</th><th>" + NS.esc(t("table")) + "</th><th>" + NS.esc(t("record")) +
+      "</th><th></th></tr></thead><tbody>" +
+      (rows.map(function (a) {
+        return "<tr><td>" + NS.esc(NS.fmtDateTime(a.created_at)) + "</td>" +
+          "<td>" + NS.esc(a.actor_email || "—") + "</td>" +
+          '<td><span class="badge">' + NS.esc(a.action) + "</span></td>" +
+          "<td>" + NS.esc(a.table_name || "—") + "</td>" +
+          "<td><code>" + NS.esc(String(a.record_id || "").slice(0, 8)) + "</code></td>" +
+          '<td><button class="btn ghost sm" data-audit="' + NS.esc(a.id) + '" type="button">' + NS.esc(t("view")) + "</button></td></tr>";
+      }).join("") || '<tr><td colspan="6"><div class="empty">' + NS.esc(t("noAudit")) + "</div></td></tr>") +
+      "</tbody></table></div>";
+
+    NS.$("#auditFilter").addEventListener("change", function (e) {
+      auditFilter = e.target.value;
+      drawAudit();
+    });
+
+    NS.$("#view").onclick = function (e) {
+      var b = e.target.closest("[data-audit]");
+      if (!b) return;
+      var a = audit.find(function (x) { return String(x.id) === String(b.dataset.audit); });
+      if (!a) return;
+      var inner = '<div class="modal-head"><h2>' + NS.esc(t("details")) + '</h2><button class="btn ghost sm" data-close type="button">' +
+        NS.esc(t("close")) + "</button></div>" +
+        "<p class=\"note\">" + NS.esc(a.action) + " · " + NS.esc(a.table_name || "") + " · " + NS.esc(NS.fmtDateTime(a.created_at)) + "</p>" +
+        '<div class="grid" style="grid-template-columns:1fr 1fr">' +
+        '<div><h3>' + NS.esc(t("before")) + '</h3><pre style="white-space:pre-wrap;font-size:.78rem;overflow:auto">' +
+        NS.esc(JSON.stringify(a.old_data || {}, null, 2)) + "</pre></div>" +
+        '<div><h3>' + NS.esc(t("after")) + '</h3><pre style="white-space:pre-wrap;font-size:.78rem;overflow:auto">' +
+        NS.esc(JSON.stringify(a.new_data || {}, null, 2)) + "</pre></div></div>";
+      var overlay = NS.openModal(inner, { wide: true });
+      overlay.addEventListener("click", function (ev) {
+        if (ev.target.closest("[data-close]")) NS.closeModal();
+      });
+    };
+  }
+
+  /* Leads ----------------------------------------------------------------- */
+  function drawLeads() {
+    var rows = leads.filter(function (l) {
+      if (!leadQuery) return true;
+      var hay = ((l.company || "") + " " + (l.contact_name || "") + " " + (l.phone || "") + " " + (l.email || "") + " " + (l.message || "")).toLowerCase();
+      return hay.indexOf(leadQuery.toLowerCase()) !== -1;
+    });
+
+    NS.$("#view").innerHTML =
+      '<div class="between"><h2>' + NS.esc(t("leadsTitle")) + '</h2><button class="btn ghost" id="leadCsv" type="button">' +
+      NS.esc(t("exportCsv")) + "</button></div>" +
+      '<div class="row" style="margin-bottom:.8rem"><input id="leadQuery" type="search" placeholder="' + NS.esc(t("searchLeads")) +
+      '" value="' + NS.esc(leadQuery) + '" style="max-width:300px"></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>' + NS.esc(t("date")) + "</th><th>" + NS.esc(t("company")) +
+      "</th><th>" + NS.esc(t("contact")) + "</th><th>" + NS.esc(t("service")) + "</th><th>" + NS.esc(t("message")) +
+      "</th><th>" + NS.esc(t("status")) + "</th></tr></thead><tbody>" +
+      (rows.map(function (l) {
+        return "<tr><td>" + NS.esc(NS.fmtDate(l.created_at)) + "</td>" +
+          "<td>" + NS.esc(l.company || "—") + '<br><span class="note">' + NS.esc(l.contact_name || "") + "</span></td>" +
+          "<td>" + NS.esc(l.phone || "") + '<br><span class="note">' + NS.esc(l.email || "") + "</span></td>" +
+          "<td>" + NS.esc(l.service || "") + "</td>" +
+          "<td>" + NS.esc(l.message || "") + "</td>" +
+          '<td><select data-lead="' + NS.esc(l.id) + '" aria-label="' + NS.esc(t("status")) + '">' +
+          ["new", "contacted", "closed"].map(function (s) {
+            return '<option value="' + s + '"' + (l.status === s ? " selected" : "") + ">" + NS.esc(NS.statusLabel(s)) + "</option>";
+          }).join("") + "</select></td></tr>";
+      }).join("") || '<tr><td colspan="6"><div class="empty">' + NS.esc(t("noLeads")) + "</div></td></tr>") +
+      "</tbody></table></div>";
+
+    var q = NS.$("#leadQuery");
+    q.addEventListener("input", NS.debounce(function () {
+      leadQuery = q.value;
+      drawLeads();
+      var again = NS.$("#leadQuery");
+      if (again) {
+        again.focus();
+        again.setSelectionRange(again.value.length, again.value.length);
+      }
+    }, 300));
+
+    NS.$("#view").onchange = async function (e) {
+      var el = e.target.closest("[data-lead]");
+      if (!el) return;
+      var res = await sb.from("leads").update({ status: el.value }).eq("id", el.dataset.lead);
+      if (res.error) return NS.toast(res.error.message, "error");
+      var lead = leads.find(function (x) { return x.id === el.dataset.lead; });
+      if (lead) lead.status = el.value;
+    };
+
+    NS.$("#leadCsv").addEventListener("click", function () {
+      var header = ["id", "created_at", "company", "contact_name", "phone", "email", "service", "message", "status"];
+      var data = rows.map(function (l) {
+        return [l.id, l.created_at, l.company, l.contact_name, l.phone, l.email, l.service, l.message, l.status];
+      });
+      NS.downloadCsv("leads-" + NS.today() + ".csv", [header].concat(data));
+    });
+  }
+
+  /* Report ---------------------------------------------------------------- */
+  function drawReport() {
+    var historyOptions = reports.map(function (r) {
+      return '<option value="' + NS.esc(r.id) + '">' + NS.esc(NS.fmtDate(r.period_start)) + " → " +
+        NS.esc(NS.fmtDate(r.period_end)) + " · " + NS.esc(NS.fmtDateTime(r.created_at)) + "</option>";
+    }).join("");
+
+    NS.$("#view").innerHTML =
+      '<div class="no-print"><h2>' + NS.esc(t("reportTitle")) + "</h2>" +
+      '<p class="note">' + NS.esc(t("reportHint")) + "</p></div>" +
+      '<div class="card no-print" style="margin-bottom:1rem"><div class="form-grid">' +
+      '<div class="field"><label for="rStart">' + NS.esc(t("from")) + '</label><input id="rStart" type="date" value="' + NS.esc(period.start) + '"></div>' +
+      '<div class="field"><label for="rEnd">' + NS.esc(t("to")) + '</label><input id="rEnd" type="date" value="' + NS.esc(period.end) + '"></div>' +
+      '<div class="field"><label for="rLang">' + NS.esc(t("reportLang")) + '</label><select id="rLang">' +
+      '<option value="ar"' + (reportLang === "ar" ? " selected" : "") + ">العربية</option>" +
+      '<option value="en"' + (reportLang === "en" ? " selected" : "") + ">English</option></select></div>" +
+      "</div>" +
+      '<div class="row" style="margin-top:.6rem">' +
+      '<button class="btn" id="genReport" type="button">' + NS.esc(t("generate")) + "</button>" +
+      '<button class="btn ghost" id="printReport" type="button">' + NS.esc(t("print")) + "</button>" +
+      "</div></div>" +
+      '<div class="card no-print" style="margin-bottom:1rem"><div class="field" style="max-width:420px"><label for="reportPick">' +
+      NS.esc(t("history")) + '</label><select id="reportPick"><option value="">' + NS.esc(t("noReports")) + "</option>" +
+      historyOptions + "</select></div></div>" +
+      '<article class="card" id="reportOut"><div class="empty">' + NS.esc(t("reportEmpty")) + "</div></article>";
+
+    NS.$("#genReport").addEventListener("click", generateReport);
+    NS.$("#printReport").addEventListener("click", function () {
+      window.print();
+    });
+    NS.$("#reportPick").addEventListener("change", function (e) {
+      var r = reports.find(function (x) { return String(x.id) === e.target.value; });
+      if (r) renderReport(r);
+    });
+    NS.$("#rLang").addEventListener("change", function (e) {
+      reportLang = e.target.value;
+    });
+
+    if (currentReport) renderReport(currentReport);
+  }
+
+  function figureRows(m) {
+    if (!m || !m.invoices) return "";
+    var comp = m.comparison || {};
+    var money = function (v) { return NS.esc(NS.fmtMoney(v || 0)); };
+    var prev = function (d) {
+      if (!d) return "";
+      var change = [];
+      if (d.absolute != null) change.push((d.absolute > 0 ? "+" : "") + NS.fmtMoney(d.absolute));
+      if (d.percent != null) change.push((d.percent > 0 ? "+" : "") + NS.fmtNum(d.percent) + "%");
+      return NS.esc(t("figPrevious")) + ": " + money(d.previous) +
+        (change.length ? " (" + NS.esc(change.join(", ")) + ")" : "");
+    };
+    var row = function (label, value, note) {
+      return "<tr><th>" + NS.esc(label) + "</th><td>" + value + '</td><td class="note">' + (note || "") + "</td></tr>";
+    };
+
+    var rows = "";
+    rows += row(t("figRevenue"), money((m.invoices || {}).total), prev(comp.revenue));
+    rows += row(t("figExpenses"), money((m.expenses || {}).total), prev(comp.expenses));
+    rows += row(t("figNet"), money(m.net), prev(comp.net));
+    rows += row(t("figTransport"), money((m.transport || {}).total) + ' <span class="note">(' +
+      NS.fmtNum((m.transport || {}).share_percent || 0) + "% " + NS.esc(t("figTransportShare")) + ")</span>", "");
+    var rec = m.receivables || {};
+    rows += row(t("figUnpaid"), money(rec.unpaid_total) + ' <span class="note">(' + NS.fmtNum(rec.unpaid_count || 0) + ")</span>",
+      NS.esc(t("figOverdue")) + ": " + money(rec.overdue_total) + " (" + NS.fmtNum(rec.overdue_count || 0) + ")");
+    rows += row(t("figDocs"), NS.fmtNum((m.documents || {}).expiring_30d || 0), "");
+    rows += row(t("figPending"), NS.fmtNum((m.pending_approvals || {}).total || 0), "");
+    rows += row(t("figLeads"), NS.fmtNum((m.leads || {}).conversion_percent || 0) + "%",
+      NS.fmtNum((m.leads || {}).converted || 0) + " / " + NS.fmtNum((m.leads || {}).count || 0));
+
+    var cats = (m.expenses || {}).by_category || {};
+    var keys = Object.keys(cats).sort(function (a, b) { return cats[b] - cats[a]; });
+    if (keys.length) {
+      rows += '<tr><th colspan="3">' + NS.esc(t("figCategories")) + "</th></tr>";
+      keys.forEach(function (k) {
+        rows += "<tr><td>" + NS.esc(catLabel(k)) + "</td><td>" + money(cats[k]) + "</td><td></td></tr>";
+      });
+    }
+    return '<div class="table-wrap"><table class="report-figures"><tbody>' + rows + "</tbody></table></div>";
+  }
+
+  function renderReport(r) {
+    currentReport = r;
+    var out = NS.$("#reportOut");
+    if (!out) return;
+    var head = '<header class="report-head"><div class="between">' +
+      '<div><h2>New Space</h2><span class="note">' + NS.esc(t("reportTitle")) + "</span></div>" +
+      '<div class="note" style="text-align:end">' + NS.esc(t("from")) + " " + NS.esc(NS.fmtDate(r.period_start)) +
+      " · " + NS.esc(t("to")) + " " + NS.esc(NS.fmtDate(r.period_end)) + "<br>" +
+      NS.esc(t("generatedAt")) + ": " + NS.esc(NS.fmtDateTime(r.created_at)) + "</div></div></header>";
+    out.innerHTML = head + figureRows(r.metrics) +
+      '<div class="divider"></div>' + md(r.content);
+  }
+
+  function md(text) {
+    var safe = NS.esc(String(text || ""));
+    var lines = safe.split(/\r?\n/);
+    var out = "";
+    var inList = false;
+    lines.forEach(function (line) {
+      var h = line.match(/^(#{1,4})\s+(.*)$/);
+      if (h) {
+        if (inList) { out += "</ul>"; inList = false; }
+        out += "<h3>" + h[2] + "</h3>";
+        return;
+      }
+      if (/^\s*[-*]\s+/.test(line)) {
+        if (!inList) { out += "<ul>"; inList = true; }
+        out += "<li>" + line.replace(/^\s*[-*]\s+/, "") + "</li>";
+        return;
+      }
+      if (inList) { out += "</ul>"; inList = false; }
+      if (line.trim() === "") return;
+      out += "<p>" + line + "</p>";
+    });
+    if (inList) out += "</ul>";
+    return out.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  }
+
+  async function generateReport() {
+    if (saving) return;
+    var start = NS.$("#rStart").value;
+    var end = NS.$("#rEnd").value;
+    if (!start || !end || start > end) return NS.toast(t("reportError"), "error");
+
+    saving = true;
+    var btn = NS.$("#genReport");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> ' + NS.esc(t("generating"));
+
+    try {
+      var sess = await sb.auth.getSession();
+      var token = sess && sess.data && sess.data.session ? sess.data.session.access_token : "";
+      if (!token) throw new Error("no_session");
+
+      var res = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ start: start, end: end, lang: reportLang }),
+      });
+      var body = await res.json().catch(function () { return {}; });
+
+      if (!res.ok) {
+        var msg = body.error || t("reportError");
+        if (res.status === 429) msg = t("rateLimited");
+        if (res.status === 403) msg = t("ownerOnly");
+        if (res.status === 404) msg = t("notConfigured");
+        throw new Error(msg);
+      }
+
+      currentReport = {
+        id: null,
+        period_start: body.metrics.period_start,
+        period_end: body.metrics.period_end,
+        metrics: body.metrics || {},
+        content: body.content,
+        created_at: new Date().toISOString(),
+      };
+      renderReport(currentReport);
+      NS.toast(t("savedReport"));
+      await loadReports();
+    } catch (err) {
+      NS.toast(err && err.message ? err.message : t("reportError"), "error");
+    } finally {
+      saving = false;
+      btn.disabled = false;
+      btn.textContent = t("generate");
+    }
+  }
+
+  /* Data ------------------------------------------------------------------ */
+  async function loadData() {
+    var res = await Promise.all([
+      sb.from("profiles").select("*").order("created_at", { ascending: false }),
+      sb.from("staff_documents").select("*").order("created_at", { ascending: false }),
+      sb.from("invoices").select("*").is("deleted_at", null),
+      sb.from("expenses").select("*").is("deleted_at", null),
+      sb.from("leads").select("*").order("created_at", { ascending: false }).limit(1000),
+      sb.from("audit_log").select("*").order("created_at", { ascending: false }).limit(200),
+      sb.from("projects").select("*").order("name", { ascending: true }),
+    ]);
+    var bad = res.find(function (r) { return r.error; });
+    if (bad) {
+      NS.$("#view").innerHTML = '<div class="alert error">' + NS.esc(bad.error.message) + "</div>";
+      return false;
+    }
+    profiles = res[0].data || [];
+    docs = res[1].data || [];
+    invoices = res[2].data || [];
+    expenses = res[3].data || [];
+    leads = res[4].data || [];
+    audit = res[5].data || [];
+    projects = res[6].data || [];
+    photos = await NS.avatarUrls(profiles, docs);
+    await loadReports();
+    return true;
+  }
+
+  async function loadReports() {
+    var res = await sb.from("reports").select("*").order("created_at", { ascending: false }).limit(20);
+    reports = res.error ? [] : (res.data || []);
+  }
+
+  async function boot() {
+    var ctx = await NS.guard(["owner"]);
+    if (!ctx) return;
+    me = ctx.profile;
+    NS.mountHeader(me);
+    period = computePeriod(periodKind);
+    var ok = await loadData();
+    if (!ok) return;
+    draw();
+  }
+
+  NS.$("#loadingText").textContent = t("loading");
+
+  NS.$("#tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tab]");
+    if (!b) return;
+    tab = b.dataset.tab;
+    draw();
+  });
+
+  NS.onLang(function () {
+    NS.$("#loadingText").textContent = t("loading");
+    if (me) {
+      NS.mountHeader(me);
+      draw();
+    }
+  });
+
+  if (window.MutationObserver) {
+    new MutationObserver(function () {
+      if (me && tab === "overview") {
+        destroyCharts();
+        buildCharts();
+      }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

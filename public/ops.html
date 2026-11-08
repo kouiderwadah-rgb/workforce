@@ -49,10 +49,10 @@ const say=m=>$("#msg").textContent=m||"",ob=(a,sel)=>a.map(x=>`<option value="${
 const badge=s=>`<span class="badge ${s}">${esc(t("st")[s]||s)}</span>`;
 async function guard(){const {data:{session}}=await sb.auth.getSession();if(!session)return location.replace("app.html");
  const {data:p}=await sb.from("profiles").select("role,status").eq("id",session.user.id).single();
- if(!p||p.status!="active"||!["admin","owner"].includes(p.role))return location.replace("app.html");}
+ if(!p||!["active","approved"].includes(p.status)||!["admin","owner"].includes(p.role))return location.replace("app.html");}
 async function load(){
  const r=await Promise.all([sb.from("leads").select("*").order("created_at",{ascending:false}),sb.from("clients").select("*").order("name"),sb.from("projects").select("*").order("name"),
-  sb.from("profiles").select("id,full_name,phone").eq("role","staff").eq("status","active").order("full_name"),
+  sb.from("profiles").select("id,full_name,phone").eq("role","staff").in("status",["active","approved"]).order("full_name"),
   sb.from("job_assignments").select("*,assignment_staff(staff_id)").order("work_date",{ascending:false})]);
  const bad=r.find(x=>x.error);if(bad){say(t("err")+bad.error.message)}
  [D.leads,D.clients,D.projects,D.staff,D.jobs]=r.map(x=>x.data||[]);}
